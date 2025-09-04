@@ -7,85 +7,177 @@ import {
   ShoppingCartIcon, 
   UsersIcon,
   ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
+  ArrowTrendingDownIcon,
+  CalendarIcon,
+  BanknotesIcon
 } from '@heroicons/react/24/outline'
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalOrders: 0,
-    totalCustomers: 0,
-    revenue: 0
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: ''
   })
 
+  const fetchDashboardData = async () => {
+    setLoading(true)
+    try {
+      let url = '/api/dashboard'
+      const params = new URLSearchParams()
+      
+      if (dateRange.startDate && dateRange.endDate) {
+        params.append('startDate', dateRange.startDate)
+        params.append('endDate', dateRange.endDate)
+      }
+      
+      if (params.toString()) {
+        url += '?' + params.toString()
+      }
+      
+      const response = await fetch(url)
+      const dashboardData = await response.json()
+      setData(dashboardData)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // Fetch dashboard data
-    setStats({
-      totalProducts: 156,
-      totalOrders: 48,
-      totalCustomers: 234,
-      revenue: 45678
-    })
+    fetchDashboardData()
   }, [])
+
+  const handleDateRangeChange = (field, value) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const applyDateFilter = () => {
+    fetchDashboardData()
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading dashboard...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-600">Failed to load dashboard data</div>
+        </div>
+      </div>
+    )
+  }
 
   const statsCards = [
     {
       title: 'Total Products',
-      value: stats.totalProducts,
+      value: data.totalProducts,
       icon: CubeIcon,
-      change: '+12%',
-      changeType: 'increase',
+      change: null,
+      changeType: 'neutral',
       bgColor: 'bg-blue-500',
     },
     {
-      title: 'Total Orders',
-      value: stats.totalOrders,
+      title: `Sales (${data.dateRange})`,
+      value: data.periodSales,
       icon: ShoppingCartIcon,
-      change: '+8%',
+      change: null,
       changeType: 'increase',
       bgColor: 'bg-green-500',
     },
     {
       title: 'Total Customers',
-      value: stats.totalCustomers,
+      value: data.totalCustomers,
       icon: UsersIcon,
-      change: '+5%',
+      change: null,
       changeType: 'increase',
       bgColor: 'bg-purple-500',
     },
     {
-      title: 'Revenue',
-      value: `₹${stats.revenue.toLocaleString()}`,
+      title: `Revenue (${data.dateRange})`,
+      value: `PKR ${data.periodRevenue.toLocaleString()}`,
       icon: ChartBarIcon,
-      change: '+18%',
+      change: null,
       changeType: 'increase',
       bgColor: 'bg-orange-500',
     },
+    {
+      title: `Profit (${data.dateRange})`,
+      value: `PKR ${data.periodProfit.toLocaleString()}`,
+      icon: BanknotesIcon,
+      change: null,
+      changeType: 'increase',
+      bgColor: 'bg-emerald-500',
+    },
   ]
 
-  const recentOrders = [
-    { id: 'ORD001', customer: 'John Doe', date: '2024-01-10', amount: 1250, status: 'Delivered' },
-    { id: 'ORD002', customer: 'Jane Smith', date: '2024-01-11', amount: 890, status: 'Processing' },
-    { id: 'ORD003', customer: 'Bob Johnson', date: '2024-01-11', amount: 2100, status: 'Pending' },
-    { id: 'ORD004', customer: 'Alice Brown', date: '2024-01-12', amount: 560, status: 'Delivered' },
-  ]
-
-  const lowStockProducts = [
-    { id: 1, name: 'Product A', stock: 5, minStock: 10 },
-    { id: 2, name: 'Product B', stock: 3, minStock: 15 },
-    { id: 3, name: 'Product C', stock: 8, minStock: 20 },
-    { id: 4, name: 'Product D', stock: 2, minStock: 10 },
-  ]
+  const recentOrders = data.recentActivities || []
+  const lowStockProducts = data.lowStockProducts || []
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome to your inventory management system</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+            <p className="text-gray-600 mt-2">Welcome to your inventory management system</p>
+          </div>
+          
+          {/* Date Range Filter */}
+          <div className="mt-4 lg:mt-0 flex items-center space-x-4 bg-white p-4 rounded-lg shadow">
+            <CalendarIcon className="w-5 h-5 text-gray-500" />
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">From:</label>
+              <input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">To:</label>
+              <input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+              />
+            </div>
+            <button
+              onClick={applyDateFilter}
+              disabled={!dateRange.startDate || !dateRange.endDate}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium"
+            >
+              Apply Filter
+            </button>
+            <button
+              onClick={() => {
+                setDateRange({ startDate: '', endDate: '' })
+                setTimeout(() => fetchDashboardData(), 100)
+              }}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {statsCards.map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
@@ -119,28 +211,36 @@ export default function Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Order ID</th>
+                  <th className="pb-3 font-medium text-gray-600">Sale ID</th>
                   <th className="pb-3 font-medium text-gray-600">Customer</th>
                   <th className="pb-3 font-medium text-gray-600">Amount</th>
+                  <th className="pb-3 font-medium text-gray-600">Profit</th>
                   <th className="pb-3 font-medium text-gray-600">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => (
+                {recentOrders.length > 0 ? recentOrders.map((order) => (
                   <tr key={order.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{order.id}</td>
-                    <td className="py-3">{order.customer}</td>
-                    <td className="py-3">₹{order.amount}</td>
+                    <td className="py-3">#{order.id}</td>
+                    <td className="py-3">{order.description.split(' to ')[1]}</td>
+                    <td className="py-3">PKR {order.amount.toLocaleString()}</td>
+                    <td className="py-3 text-green-600">PKR {order.profit.toLocaleString()}</td>
                     <td className="py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium
-                        ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 
-                          order.status === 'Processing' ? 'bg-blue-100 text-blue-600' : 
+                        ${order.status === 'paid' ? 'bg-green-100 text-green-600' : 
+                          order.status === 'partial' ? 'bg-blue-100 text-blue-600' : 
                           'bg-yellow-100 text-yellow-600'}`}>
-                        {order.status}
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-gray-500">
+                      No recent sales found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -150,18 +250,23 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Low Stock Alert</h2>
           <div className="space-y-3">
-            {lowStockProducts.map((product) => (
+            {lowStockProducts.length > 0 ? lowStockProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-800">{product.name}</p>
-                  <p className="text-sm text-gray-600">Min Stock: {product.minStock}</p>
+                  <p className="text-sm text-gray-600">Category: {product.category || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-red-600">{product.stock}</p>
+                  <p className="text-lg font-bold text-red-600">{product.quantity}</p>
                   <p className="text-xs text-gray-500">Current Stock</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">✅</div>
+                <p>All products are well stocked!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
