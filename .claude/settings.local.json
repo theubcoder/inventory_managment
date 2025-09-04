@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/D:\\My Projects\\inventory-2\\src\\app/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
