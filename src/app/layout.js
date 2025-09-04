@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/components/NotificationSystem";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
         <NotificationProvider>
           <LanguageProvider>{children}</LanguageProvider>
         </NotificationProvider>
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

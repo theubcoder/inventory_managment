@@ -64,12 +64,63 @@ export async function POST(request) {
   }
 }
 
-// PUT - Record a payment for a sale
+// PUT - Record a new payment or update existing payment
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { saleId, amountPaid, paymentMethod, notes } = body;
+    const { id, saleId, amountPaid, paymentMethod, paymentDate, notes } = body;
 
+    // If id is provided, update existing payment
+    if (id) {
+      const result = await prisma.$transaction(async (tx) => {
+        // Get the existing payment record
+        const existingPayment = await tx.paymentHistory.findUnique({
+          where: { id: parseInt(id) },
+          include: {
+            sale: true
+          }
+        });
+
+        if (!existingPayment) {
+          throw new Error('Payment record not found');
+        }
+
+        // Calculate the difference in payment amount
+        const amountDifference = parseFloat(amountPaid) - parseFloat(existingPayment.amountPaid);
+        
+        // Update sale amounts
+        const newAmountPaid = parseFloat(existingPayment.sale.amountPaid) + amountDifference;
+        const newRemainingAmount = Math.max(0, parseFloat(existingPayment.sale.totalAmount) - newAmountPaid);
+        const newPaymentStatus = newRemainingAmount <= 0 ? 'paid' : newRemainingAmount < parseFloat(existingPayment.sale.totalAmount) ? 'partial' : 'pending';
+
+        // Update the payment record
+        const updatedPayment = await tx.paymentHistory.update({
+          where: { id: parseInt(id) },
+          data: {
+            amountPaid: parseFloat(amountPaid),
+            paymentMethod: paymentMethod || existingPayment.paymentMethod,
+            paymentDate: paymentDate ? new Date(paymentDate) : existingPayment.paymentDate,
+            notes: notes !== undefined ? notes : existingPayment.notes
+          }
+        });
+
+        // Update the sale
+        await tx.sale.update({
+          where: { id: existingPayment.saleId },
+          data: {
+            amountPaid: newAmountPaid,
+            remainingAmount: newRemainingAmount,
+            paymentStatus: newPaymentStatus
+          }
+        });
+
+        return updatedPayment;
+      });
+
+      return NextResponse.json(result);
+    }
+
+    // Otherwise, create new payment (original logic)
     if (!saleId || !amountPaid) {
       return NextResponse.json({ error: 'Sale ID and payment amount are required' }, { status: 400 });
     }
@@ -84,9 +135,14 @@ export async function PUT(request) {
         throw new Error('Sale not found');
       }
 
+      // Validate payment amount doesn't exceed remaining
+      if (parseFloat(amountPaid) > parseFloat(sale.remainingAmount)) {
+        throw new Error(`Payment amount cannot exceed remaining amount of PKR ${sale.remainingAmount}`);
+      }
+
       // Calculate new payment details
       const newTotalPaid = parseFloat(sale.amountPaid || 0) + parseFloat(amountPaid);
-      const newRemaining = parseFloat(sale.totalAmount) - newTotalPaid;
+      const newRemaining = Math.max(0, parseFloat(sale.totalAmount) - newTotalPaid);
       const newPaymentStatus = newRemaining <= 0 ? 'paid' : newRemaining < parseFloat(sale.totalAmount) ? 'partial' : 'pending';
 
       // Update sale and create payment history record
@@ -126,8 +182,8 @@ export async function PUT(request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error recording payment:', error);
-    return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
+    console.error('Error processing payment:', error);
+    return NextResponse.json({ error: error.message || 'Failed to process payment' }, { status: 500 });
   }
 }
 
@@ -154,23 +210,19 @@ export async function DELETE(request) {
         throw new Error('Payment record not found');
       }
 
-      // Don't allow deleting the initial payment (index 0)
+      // Check if this is the only payment
       const paymentCount = await tx.paymentHistory.count({
         where: { saleId: payment.saleId }
       });
       
-      const firstPayment = await tx.paymentHistory.findFirst({
-        where: { saleId: payment.saleId },
-        orderBy: { createdAt: 'asc' }
-      });
-
-      if (firstPayment && firstPayment.id === payment.id && paymentCount > 1) {
-        throw new Error('Cannot delete the initial payment record');
+      // Allow deletion of any payment, but warn if it's the last one
+      if (paymentCount === 1) {
+        console.log('Deleting the last payment record for sale:', payment.saleId);
       }
 
       // Update the sale amounts
       const newAmountPaid = Math.max(0, parseFloat(payment.sale.amountPaid) - parseFloat(payment.amountPaid));
-      const newRemainingAmount = parseFloat(payment.sale.totalAmount) - newAmountPaid;
+      const newRemainingAmount = Math.max(0, parseFloat(payment.sale.totalAmount) - newAmountPaid);
       const newPaymentStatus = newRemainingAmount <= 0 ? 'paid' : newRemainingAmount < parseFloat(payment.sale.totalAmount) ? 'partial' : 'pending';
 
       // Update sale

@@ -9,11 +9,12 @@ export default function SalesPOS() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', email: '' });
+  const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '' });
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountPaid, setAmountPaid] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [paymentType, setPaymentType] = useState('full'); // full or partial
+  const [profitDiscount, setProfitDiscount] = useState(0); // Discount from profit
   const [showCheckout, setShowCheckout] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastSale, setLastSale] = useState(null);
@@ -108,7 +109,8 @@ export default function SalesPOS() {
     setCart(cart.filter(item => item.id !== id));
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
+    // Subtotal is just the selling price of items
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
@@ -120,8 +122,23 @@ export default function SalesPOS() {
     }, 0);
   };
 
+  const calculateTotal = () => {
+    // Total = Subtotal + Profit
+    return calculateSubtotal() + calculateProfit();
+  };
+
   const calculateGrandTotal = () => {
-    return calculateTotal(); // No tax added, just the total
+    // Grand total = Subtotal + Profit - Discount
+    const subtotal = calculateSubtotal();
+    const profit = calculateProfit();
+    const discount = parseFloat(profitDiscount) || 0;
+    return subtotal + profit - discount;
+  };
+  
+  const calculateFinalProfit = () => {
+    const baseProfit = calculateProfit();
+    const discount = parseFloat(profitDiscount) || 0;
+    return Math.max(0, baseProfit - discount); // Profit after discount
   };
 
   const handleCheckout = () => {
@@ -133,6 +150,12 @@ export default function SalesPOS() {
   };
 
   const processSale = async () => {
+    // Validate required fields
+    if (!customerInfo.name || customerInfo.name.trim() === '') {
+      showError('Customer name is required');
+      return;
+    }
+    
     setLoading(true);
     try {
       const grandTotal = calculateGrandTotal();
@@ -149,6 +172,7 @@ export default function SalesPOS() {
         })),
         paymentMethod: paymentMethod,
         amountPaid: paidAmount,
+        profitDiscount: parseFloat(profitDiscount) || 0,
         dueDate: paymentType === 'partial' && dueDate ? dueDate : null
       };
 
@@ -165,18 +189,21 @@ export default function SalesPOS() {
           items: sale.saleItems || cart, // Use saleItems from response or fallback to cart
           customer: sale.customer || customerInfo,
           date: new Date(sale.createdAt).toLocaleString(),
-          subtotal: calculateTotal(),
+          subtotal: calculateSubtotal(),
           profit: calculateProfit(),
+          profitDiscount: parseFloat(profitDiscount) || 0,
+          finalProfit: calculateFinalProfit(),
           total: calculateGrandTotal(),
           paymentMethod: sale.paymentMethod || paymentMethod
         });
         
         setCart([]);
-        setCustomerInfo({ name: '', phone: '', email: '' });
+        setCustomerInfo({ name: '', phone: '' });
         setPaymentMethod('cash');
         setAmountPaid('');
         setDueDate('');
         setPaymentType('full');
+        setProfitDiscount(0);
         setShowCheckout(false);
         setShowReceipt(true);
         
@@ -839,10 +866,10 @@ export default function SalesPOS() {
           <div className="total-section">
             <div className="total-row">
               <span className="total-label">{t('subtotal')}:</span>
-              <span className="total-value">PKR {calculateTotal().toLocaleString()}</span>
+              <span className="total-value">PKR {calculateSubtotal().toLocaleString()}</span>
             </div>
-            <div className="total-row">
-              <span className="total-label">{t('profit')}:</span>
+            <div className="total-row" style={{color: '#10b981'}}>
+              <span className="total-label">+ {t('profit')}:</span>
               <span className="total-value">PKR {calculateProfit().toFixed(2)}</span>
             </div>
             <div className="total-row grand-total">
@@ -869,35 +896,31 @@ export default function SalesPOS() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">{t('customerName')}</label>
+              <label className="form-label">
+                {t('customerName')} <span style={{color: '#ef4444'}}>*</span>
+              </label>
               <input
                 type="text"
                 className="form-input"
                 value={customerInfo.name || ''}
                 onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                placeholder={t('enterCustomerName')}
+                placeholder={t('enterCustomerName') + ' (Required)'}
+                required
+                style={{
+                  borderColor: customerInfo.name ? '#e5e7eb' : '#fca5a5',
+                  borderWidth: '2px'
+                }}
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">{t('phoneNumber')}</label>
+              <label className="form-label">{t('phoneNumber')} (Optional)</label>
               <input
                 type="tel"
                 className="form-input"
                 value={customerInfo.phone || ''}
                 onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
                 placeholder={t('enterPhoneNumber')}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">{t('emailOptional')}</label>
-              <input
-                type="email"
-                className="form-input"
-                value={customerInfo.email || ''}
-                onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                placeholder={t('enterEmailAddress')}
               />
             </div>
 
@@ -927,6 +950,42 @@ export default function SalesPOS() {
               </div>
             </div>
 
+            <div className="form-group">
+              <label className="form-label" style={{color: '#ef4444'}}>
+                Discount Amount (PKR)
+              </label>
+              <input
+                type="number"
+                className="form-input"
+                value={profitDiscount || ''}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  const maxDiscount = calculateProfit();
+                  if (value > maxDiscount) {
+                    showWarning(`Maximum profit reduction is PKR ${maxDiscount.toFixed(2)}`);
+                    setProfitDiscount(maxDiscount);
+                  } else if (value < 0) {
+                    setProfitDiscount(0);
+                  } else {
+                    setProfitDiscount(value);
+                  }
+                }}
+                placeholder="Enter discount amount"
+                min="0"
+                max={calculateProfit()}
+                step="0.01"
+              />
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280' }}>
+                <div>Total Profit: PKR {calculateProfit().toFixed(2)}</div>
+                <div>Max Discount: PKR {calculateProfit().toFixed(2)}</div>
+                {profitDiscount > 0 && (
+                  <div style={{color: '#10b981', marginTop: '4px', fontWeight: '500'}}>
+                    Net Profit After Discount: PKR {calculateFinalProfit().toFixed(2)}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {paymentType === 'partial' && (
               <>
                 <div className="form-group">
@@ -935,15 +994,32 @@ export default function SalesPOS() {
                     type="number"
                     className="form-input"
                     value={amountPaid || ''}
-                    onChange={(e) => setAmountPaid(e.target.value)}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      const grandTotal = calculateGrandTotal();
+                      // Limit to grand total amount
+                      if (value <= grandTotal) {
+                        setAmountPaid(e.target.value);
+                      } else {
+                        setAmountPaid(grandTotal.toString());
+                      }
+                    }}
                     placeholder={t('enterAmountPayingNow')}
                     min="0"
                     max={calculateGrandTotal().toFixed(2)}
                     step="0.01"
                   />
                   {amountPaid && (
-                    <div style={{ marginTop: '8px', fontSize: '14px', color: '#6b7280' }}>
-                      {t('remaining')}: PKR {(calculateGrandTotal() - parseFloat(amountPaid || 0)).toFixed(2)}
+                    <div style={{ marginTop: '8px', fontSize: '14px' }}>
+                      {parseFloat(amountPaid) > calculateGrandTotal() ? (
+                        <div style={{ color: '#ef4444' }}>
+                          {t('amountExceedsTotal') || 'Amount cannot exceed total'}
+                        </div>
+                      ) : (
+                        <div style={{ color: '#6b7280' }}>
+                          {t('remaining')}: PKR {Math.max(0, calculateGrandTotal() - parseFloat(amountPaid || 0)).toFixed(2)}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -986,8 +1062,31 @@ export default function SalesPOS() {
             </div>
 
             <div className="total-section">
+              <div className="total-row">
+                <span className="total-label">{t('subtotal')}:</span>
+                <span className="total-value">PKR {calculateSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="total-row" style={{color: '#10b981'}}>
+                <span className="total-label">+ {t('profit')}:</span>
+                <span className="total-value">PKR {calculateProfit().toFixed(2)}</span>
+              </div>
+              <div className="total-row" style={{fontWeight: '500'}}>
+                <span className="total-label">Total:</span>
+                <span className="total-value">PKR {calculateTotal().toFixed(2)}</span>
+              </div>
+              {profitDiscount > 0 && (
+                <>
+                  <div className="total-row" style={{color: '#ef4444'}}>
+                    <span className="total-label">- Discount:</span>
+                    <span className="total-value">-PKR {parseFloat(profitDiscount).toFixed(2)}</span>
+                  </div>
+                  <div className="total-row" style={{color: '#059669', fontSize: '12px'}}>
+                    <span className="total-label">(Net Profit: PKR {calculateFinalProfit().toFixed(2)})</span>
+                  </div>
+                </>
+              )}
               <div className="total-row grand-total">
-                <span className="total-label">{t('totalAmount')}:</span>
+                <span className="total-label">{t('grandTotal')} (Customer Pays):</span>
                 <span className="total-value">PKR {calculateGrandTotal().toFixed(2)}</span>
               </div>
               {paymentType === 'partial' && amountPaid && (
@@ -998,15 +1097,36 @@ export default function SalesPOS() {
                   </div>
                   <div className="total-row" style={{ color: '#dc2626' }}>
                     <span className="total-label">{t('remainingAmount')}:</span>
-                    <span className="total-value">PKR {(calculateGrandTotal() - parseFloat(amountPaid || 0)).toFixed(2)}</span>
+                    <span className="total-value">PKR {Math.max(0, calculateGrandTotal() - parseFloat(amountPaid || 0)).toFixed(2)}</span>
                   </div>
                 </>
               )}
             </div>
 
             <div className="form-actions">
-              <button className="process-btn" onClick={processSale}>
-                {t('processSale')}
+              <button 
+                className="process-btn" 
+                onClick={processSale}
+                disabled={
+                  !customerInfo.name || 
+                  customerInfo.name.trim() === '' || 
+                  loading || 
+                  (paymentType === 'partial' && parseFloat(amountPaid || 0) > calculateGrandTotal())
+                }
+                style={{
+                  opacity: (
+                    !customerInfo.name || 
+                    customerInfo.name.trim() === '' || 
+                    (paymentType === 'partial' && parseFloat(amountPaid || 0) > calculateGrandTotal())
+                  ) ? 0.6 : 1,
+                  cursor: (
+                    !customerInfo.name || 
+                    customerInfo.name.trim() === '' || 
+                    (paymentType === 'partial' && parseFloat(amountPaid || 0) > calculateGrandTotal())
+                  ) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? t('processing') + '...' : t('processSale')}
               </button>
               <button className="cancel-btn" onClick={() => setShowCheckout(false)}>
                 {t('cancel')}
@@ -1033,11 +1153,10 @@ export default function SalesPOS() {
                 </div>
               </div>
 
-              {lastSale.customer && lastSale.customer.name && (
+              {lastSale.customer && (lastSale.customer.name || lastSale.customer.phone) && (
                 <div style={{ marginBottom: '20px', textAlign: 'left' }}>
-                  <strong>{t('customer')}:</strong> {lastSale.customer.name}<br />
-                  {lastSale.customer.phone && <><strong>{t('phone')}:</strong> {lastSale.customer.phone}<br /></>}
-                  {lastSale.customer.email && <><strong>{t('email')}:</strong> {lastSale.customer.email}</>}
+                  {lastSale.customer.name && <><strong>{t('customer')}:</strong> {lastSale.customer.name}<br /></>}
+                  {lastSale.customer.phone && <><strong>{t('phone')}:</strong> {lastSale.customer.phone}</>}
                 </div>
               )}
 
@@ -1059,6 +1178,18 @@ export default function SalesPOS() {
                   <span className="total-label">{t('profit')}:</span>
                   <span className="total-value">PKR {lastSale.profit.toFixed(2)}</span>
                 </div>
+                {lastSale.profitDiscount > 0 && (
+                  <>
+                    <div className="total-row" style={{color: '#ef4444'}}>
+                      <span className="total-label">Profit Reduced By:</span>
+                      <span className="total-value">-PKR {lastSale.profitDiscount.toFixed(2)}</span>
+                    </div>
+                    <div className="total-row" style={{color: '#10b981'}}>
+                      <span className="total-label">Net Profit:</span>
+                      <span className="total-value">PKR {lastSale.finalProfit.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="total-row grand-total">
                   <span className="total-label">{t('total')}:</span>
                   <span className="total-value">PKR {lastSale.total.toFixed(2)}</span>

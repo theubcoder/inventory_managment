@@ -17,6 +17,7 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
+import { NavUserWithCleaner } from "@/components/nav-user-with-cleaner"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
@@ -36,7 +37,7 @@ const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "/avatars/shadcn.svg",
   },
   teams: [
     {
@@ -142,23 +143,7 @@ const data = {
       ],
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+
 }
 
 export function AppSidebar({
@@ -238,14 +223,14 @@ const menuItems  = [
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} menuItems={menuItems}/>
-        <NavProjects projects={data.projects} />
+    
       </SidebarContent>
       {/* <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent> */}
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUserWithCleaner user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

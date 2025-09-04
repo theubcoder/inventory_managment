@@ -15,10 +15,15 @@ export async function GET(request) {
       if (!isNaN(searchId)) {
         where.OR = [
           { id: searchId },
-          { customer: { phone: search } }
+          { customer: { phone: search } },
+          { customer: { name: { contains: search, mode: 'insensitive' } } }
         ];
       } else {
-        where.customer = { phone: search };
+        // Search by phone or name
+        where.OR = [
+          { customer: { phone: search } },
+          { customer: { name: { contains: search, mode: 'insensitive' } } }
+        ];
       }
     }
 
@@ -42,7 +47,10 @@ export async function GET(request) {
       }
     });
 
-    return NextResponse.json(sales);
+    // Filter out sales that have no items left (all items returned)
+    const salesWithItems = sales.filter(sale => sale.saleItems && sale.saleItems.length > 0);
+
+    return NextResponse.json(salesWithItems);
   } catch (error) {
     console.error('Error fetching sales:', error);
     return NextResponse.json({ error: 'Failed to fetch sales' }, { status: 500 });
@@ -58,7 +66,7 @@ export async function POST(request) {
     // Calculate totals
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const taxAmount = 0; // No tax
-    const totalAmount = subtotal; // Total is just subtotal without tax
+    const discountAmount = parseFloat(profitDiscount) || 0;
     
     // Calculate profit
     let totalProfit = 0;
@@ -82,12 +90,15 @@ export async function POST(request) {
       totalProfit += itemProfit;
     }
     
-    // Apply profit discount
-    const finalProfit = Math.max(0, totalProfit - (parseFloat(profitDiscount) || 0));
+    // Total amount = subtotal + profit - discount
+    const totalAmount = subtotal + totalProfit - discountAmount;
+    
+    // Final profit after discount
+    const finalProfit = Math.max(0, totalProfit - discountAmount);
     
     // Calculate payment details
     const paidAmount = amountPaid !== undefined ? parseFloat(amountPaid) : totalAmount;
-    const remainingAmount = totalAmount - paidAmount;
+    const remainingAmount = Math.max(0, totalAmount - paidAmount);
     const paymentStatus = remainingAmount <= 0 ? 'paid' : remainingAmount < totalAmount ? 'partial' : 'pending';
 
     // Start a transaction with increased timeout
@@ -131,7 +142,8 @@ export async function POST(request) {
           customerId,
           totalAmount,
           taxAmount,
-          profitDiscount: parseFloat(profitDiscount) || 0,
+          discountAmount: discountAmount,
+          profitDiscount: discountAmount,
           totalProfit: finalProfit,
           amountPaid: paidAmount,
           remainingAmount,
@@ -237,7 +249,7 @@ export async function PUT(request) {
 
       // Calculate new payment details
       const newTotalPaid = parseFloat(sale.amountPaid || 0) + parseFloat(amountPaid);
-      const newRemaining = parseFloat(sale.totalAmount) - newTotalPaid;
+      const newRemaining = Math.max(0, parseFloat(sale.totalAmount) - newTotalPaid);
       const newPaymentStatus = newRemaining <= 0 ? 'paid' : newRemaining < parseFloat(sale.totalAmount) ? 'partial' : 'pending';
 
       // Update sale and create payment history in parallel
@@ -298,12 +310,18 @@ export async function DELETE(request) {
         where: { id: parseInt(saleId) },
         include: {
           saleItems: true,
-          paymentHistory: true
+          paymentHistory: true,
+          returns: true
         }
       });
 
       if (!sale) {
         throw new Error('Sale not found');
+      }
+
+      // Check if sale has any returns
+      if (sale.returns && sale.returns.length > 0) {
+        throw new Error('Cannot delete sale with returns. Please delete the returns first.');
       }
 
       // Only allow deletion of fully paid sales
@@ -312,12 +330,15 @@ export async function DELETE(request) {
       }
 
       // Restore product quantities before deleting
+      // Note: If there were returns, the quantities have already been restored
+      // So we only restore quantities that weren't returned
       for (const item of sale.saleItems) {
         const product = await tx.product.findUnique({
           where: { id: item.productId }
         });
         
         if (product) {
+          // Since we don't allow deletion with returns, we can safely restore full quantity
           await tx.product.update({
             where: { id: item.productId },
             data: {

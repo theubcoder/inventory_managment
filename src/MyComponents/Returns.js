@@ -7,6 +7,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 export default function Returns() {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchCustomerName, setSearchCustomerName] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
   const [selectedSale, setSelectedSale] = useState(null);
   const [returnItems, setReturnItems] = useState([]);
   const [returnReason, setReturnReason] = useState('');
@@ -19,6 +21,8 @@ export default function Returns() {
   useEffect(() => {
     // Reset all state when component mounts
     setSearchTerm('');
+    setSearchCustomerName('');
+    setSearchPhone('');
     setSelectedSale(null);
     setReturnItems([]);
     setReturnReason('');
@@ -29,6 +33,37 @@ export default function Returns() {
     // Fetch fresh data
     fetchReturns();
   }, []);
+
+  const handleDeleteReturn = async (returnId) => {
+    const confirmed = await confirm({
+      title: t('deleteReturn') || 'Delete Return',
+      message: t('confirmDeleteReturn') || 'Are you sure you want to delete this return? This will reverse the return and restore the sale items.',
+      confirmText: t('delete') || 'Delete',
+      cancelText: t('cancel') || 'Cancel'
+    });
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/returns?id=${returnId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        showSuccess(t('returnDeletedSuccessfully') || 'Return deleted successfully');
+        await fetchReturns();
+      } else {
+        const error = await response.json();
+        showError(error.error || t('failedToDeleteReturn') || 'Failed to delete return');
+      }
+    } catch (error) {
+      console.error('Error deleting return:', error);
+      showError(t('errorDeletingReturn') || 'Error deleting return');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchReturns = async () => {
     try {
@@ -42,7 +77,7 @@ export default function Returns() {
           saleId: ret.saleId,
           date: new Date(ret.createdAt).toLocaleDateString(),
           customer: ret.customer?.name || t('walkInCustomer'),
-          items: ret.returnItems?.length || 0,
+          items: ret.returnItems?.reduce((sum, item) => sum + item.quantity, 0) || 0, // Sum of quantities
           amount: parseFloat(ret.refundAmount),
           status: ret.status,
           reason: ret.reason
@@ -57,14 +92,25 @@ export default function Returns() {
   };
 
   const handleSearch = async () => {
-    if (!searchTerm) {
-      showWarning(t('pleaseEnterSaleIdOrPhone'));
+    // Check if at least one search field has value
+    if (!searchTerm && !searchCustomerName && !searchPhone) {
+      showWarning(t('pleaseEnterSearchCriteria') || 'Please enter Sale ID, Customer Name, or Phone Number');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/sales?search=${searchTerm}`);
+      // Build search query based on provided fields
+      let searchQuery = '';
+      if (searchTerm) {
+        searchQuery = searchTerm;
+      } else if (searchPhone) {
+        searchQuery = searchPhone;
+      } else if (searchCustomerName) {
+        searchQuery = searchCustomerName;
+      }
+
+      const response = await fetch(`/api/sales?search=${searchQuery}`);
       const sales = await response.json();
       
       if (sales && sales.length > 0) {
@@ -81,7 +127,9 @@ export default function Returns() {
             quantity: item.quantity,
             returnable: true
           })),
-          total: parseFloat(sale.totalAmount)
+          total: parseFloat(sale.totalAmount),
+          totalProfit: parseFloat(sale.totalProfit || 0),
+          subtotal: parseFloat(sale.totalAmount) - parseFloat(sale.totalProfit || 0)
         });
         setReturnItems(sale.saleItems.map(item => ({ 
           ...item,
@@ -93,7 +141,7 @@ export default function Returns() {
           returnQty: 0 
         })));
       } else {
-        showError(t('saleNotFoundCheckIdOrPhone'));
+        showError(t('saleNotFoundOrFullyReturned') || 'Sale not found or all items have already been returned. Check Sale ID, Customer Name, or Phone Number.');
       }
     } catch (error) {
       console.error('Error searching sale:', error);
@@ -120,9 +168,18 @@ export default function Returns() {
   };
 
   const calculateReturnAmount = () => {
-    return returnItems
+    const returnSubtotal = returnItems
       .filter(item => item.selected)
       .reduce((total, item) => total + (item.price * item.returnQty), 0);
+    
+    // Calculate proportional profit to include
+    if (selectedSale && selectedSale.subtotal > 0) {
+      const profitRatio = selectedSale.totalProfit / selectedSale.subtotal;
+      const returnProfit = returnSubtotal * profitRatio;
+      return returnSubtotal + returnProfit;
+    }
+    
+    return returnSubtotal;
   };
 
   const processReturn = async () => {
@@ -149,6 +206,9 @@ export default function Returns() {
 
     setLoading(true);
     try {
+      // Calculate profit ratio to include in refund
+      const profitRatio = selectedSale.subtotal > 0 ? selectedSale.totalProfit / selectedSale.subtotal : 0;
+      
       const returnData = {
         saleId: selectedSale.id,
         customerId: selectedSale.customer?.id || null,
@@ -156,8 +216,11 @@ export default function Returns() {
         items: selectedItems.map(item => ({
           productId: item.productId,
           quantity: item.returnQty,
-          unitPrice: item.price
+          unitPrice: item.price,
+          unitPriceWithProfit: item.price * (1 + profitRatio) // Include profit in unit price
         })),
+        totalProfit: selectedSale.totalProfit,
+        subtotal: selectedSale.subtotal,
         processedBy: t('staff')
       };
 
@@ -178,6 +241,8 @@ export default function Returns() {
           setReturnItems([]);
           setReturnReason('');
           setSearchTerm('');
+          setSearchCustomerName('');
+          setSearchPhone('');
           setShowConfirmation(false);
         }, 3000);
       } else {
@@ -651,7 +716,10 @@ export default function Returns() {
                 </div>
                 <div className="customer-info">
                   <strong>{t('customer')}:</strong> {selectedSale.customer.name}<br />
-                  <strong>{t('phone')}:</strong> {selectedSale.customer.phone}
+                  <strong>{t('phone')}:</strong> {selectedSale.customer.phone}<br />
+                  <strong>{t('subtotal')}:</strong> PKR {selectedSale.subtotal?.toFixed(2) || '0.00'}<br />
+                  <strong style={{ color: '#10b981' }}>{t('profit')}:</strong> <span style={{ color: '#10b981' }}>PKR {selectedSale.totalProfit?.toFixed(2) || '0.00'}</span><br />
+                  <strong>{t('total')}:</strong> PKR {selectedSale.total?.toFixed(2) || '0.00'}
                 </div>
               </div>
 
@@ -713,9 +781,27 @@ export default function Returns() {
                   </span>
                 </div>
                 <div className="summary-row">
-                  <span className="summary-label">Refund Amount:</span>
+                  <span className="summary-label">Return Subtotal:</span>
                   <span className="summary-value">
-                    PKR {calculateReturnAmount().toLocaleString()}
+                    PKR {returnItems.filter(item => item.selected).reduce((total, item) => total + (item.price * item.returnQty), 0).toFixed(2)}
+                  </span>
+                </div>
+                {selectedSale && selectedSale.subtotal > 0 && (
+                  <div className="summary-row">
+                    <span className="summary-label" style={{ color: '#10b981' }}>Return Profit:</span>
+                    <span className="summary-value" style={{ color: '#10b981' }}>
+                      PKR {(() => {
+                        const returnSubtotal = returnItems.filter(item => item.selected).reduce((total, item) => total + (item.price * item.returnQty), 0);
+                        const profitRatio = selectedSale.totalProfit / selectedSale.subtotal;
+                        return (returnSubtotal * profitRatio).toFixed(2);
+                      })()}
+                    </span>
+                  </div>
+                )}
+                <div className="summary-row" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px', marginTop: '5px' }}>
+                  <span className="summary-label" style={{ fontWeight: 'bold' }}>Total Refund:</span>
+                  <span className="summary-value" style={{ fontWeight: 'bold' }}>
+                    PKR {calculateReturnAmount().toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -744,15 +830,29 @@ export default function Returns() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="search-section">
               <h2 className="section-title">{t('findSale')}</h2>
-              <div className="search-form">
+              <div className="search-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <input
                   type="text"
                   className="search-input"
-                  placeholder={t('enterSaleIdOrPhone')}
+                  placeholder={t('enterSaleId') || 'Enter Sale ID'}
                   value={searchTerm || ''}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <button className="search-btn" onClick={handleSearch}>
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder={t('enterCustomerName') || 'Enter Customer Name'}
+                  value={searchCustomerName || ''}
+                  onChange={(e) => setSearchCustomerName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder={t('enterPhoneNumber') || 'Enter Phone Number'}
+                  value={searchPhone || ''}
+                  onChange={(e) => setSearchPhone(e.target.value)}
+                />
+                <button className="search-btn" onClick={handleSearch} style={{ marginTop: '8px' }}>
                   {t('search')}
                 </button>
               </div>
@@ -770,14 +870,34 @@ export default function Returns() {
                     <div key={returnItem.id} className="return-item">
                       <div className="return-header">
                         <span className="return-id">{t('return')} #{returnItem.id}</span>
-                        <span className={`return-status status-${returnItem.status.toLowerCase()}`}>
-                          {returnItem.status}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span className={`return-status status-${returnItem.status.toLowerCase()}`}>
+                            {returnItem.status}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteReturn(returnItem.id)}
+                            style={{
+                              padding: '5px 10px',
+                              background: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onMouseOver={(e) => e.target.style.background = '#dc2626'}
+                            onMouseOut={(e) => e.target.style.background = '#ef4444'}
+                            disabled={loading}
+                          >
+                            {t('delete') || 'Delete'}
+                          </button>
+                        </div>
                       </div>
                       <div className="return-details">
                         <strong>{t('date')}:</strong> {returnItem.date}<br />
                         <strong>{t('customer')}:</strong> {returnItem.customer}<br />
-                        <strong>{t('items')}:</strong> {returnItem.items}<br />
+                        <strong>{t('items')}:</strong> {returnItem.items} {returnItem.items === 1 ? 'item' : 'items'}<br />
                         <strong>{t('reason')}:</strong> {returnItem.reason}
                       </div>
                       <div className="return-amount">

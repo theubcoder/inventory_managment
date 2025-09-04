@@ -10,9 +10,12 @@ export default function LoanManagement() {
   const [sales, setSales] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentNotes, setPaymentNotes] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -106,6 +109,53 @@ export default function LoanManagement() {
   const handleCancelConfirm = () => {
     setShowConfirmDialog(false);
     setConfirmAction(null);
+  };
+
+  const handleEditPayment = (payment, sale) => {
+    setEditingPayment(payment);
+    setSelectedSale(sale);
+    setPaymentAmount(payment.amountPaid.toString());
+    setPaymentMethod(payment.paymentMethod);
+    setPaymentNotes(payment.notes || '');
+    setPaymentDate(new Date(payment.paymentDate || payment.createdAt).toISOString().split('T')[0]);
+    setShowEditPaymentModal(true);
+  };
+
+  const handleUpdatePayment = async () => {
+    if (!editingPayment || !paymentAmount) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/payment-history', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingPayment.id,
+          amountPaid: parseFloat(paymentAmount),
+          paymentMethod,
+          paymentDate: paymentDate || new Date().toISOString(),
+          notes: paymentNotes
+        })
+      });
+
+      if (response.ok) {
+        showSuccess(t('paymentUpdatedSuccess') || 'Payment updated successfully');
+        setShowEditPaymentModal(false);
+        setEditingPayment(null);
+        setPaymentAmount('');
+        setPaymentNotes('');
+        setPaymentDate('');
+        fetchSales(); // Refresh the sales list
+      } else {
+        const error = await response.json();
+        showError(error.message || t('failedToUpdatePayment'));
+      }
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      showError(t('errorUpdatingPayment'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeletePayment = (saleId, paymentId) => {
@@ -918,33 +968,65 @@ export default function LoanManagement() {
                         <div className="detail-title">{t('paymentHistory')}</div>
                         <div className="payment-history">
                           {sale.paymentHistory && sale.paymentHistory.length > 0 ? (
-                            sale.paymentHistory.map((payment, index) => (
-                              <div key={index} className="payment-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', padding: '10px', background: '#f9fafb', borderRadius: '8px' }}>
-                                <div style={{ flex: 1 }}>
-                                  <div>{t(payment.paymentMethod)} - PKR {parseFloat(payment.amountPaid).toLocaleString()}</div>
-                                  <div className="payment-date" style={{ fontSize: '12px', color: '#6b7280' }}>{formatDate(payment.paymentDate || payment.createdAt)}</div>
-                                  {payment.notes && <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>{payment.notes}</div>}
+                            sale.paymentHistory.map((payment, index) => {
+                              const isRefund = payment.paymentMethod === 'refund' || parseFloat(payment.amountPaid) < 0;
+                              return (
+                                <div key={index} className="payment-item" style={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between', 
+                                  alignItems: 'center', 
+                                  marginBottom: '10px', 
+                                  padding: '10px', 
+                                  background: isRefund ? '#fef2f2' : '#f9fafb', 
+                                  borderRadius: '8px',
+                                  border: isRefund ? '1px solid #fecaca' : 'none'
+                                }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ color: isRefund ? '#dc2626' : 'inherit' }}>
+                                      {isRefund ? '↩ ' : ''}{t(payment.paymentMethod)} - PKR {Math.abs(parseFloat(payment.amountPaid)).toLocaleString()}
+                                      {isRefund && <span style={{ marginLeft: '8px', fontSize: '12px', color: '#dc2626' }}>(Refund)</span>}
+                                    </div>
+                                    <div className="payment-date" style={{ fontSize: '12px', color: '#6b7280' }}>{formatDate(payment.paymentDate || payment.createdAt)}</div>
+                                    {payment.notes && <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>{payment.notes}</div>}
+                                  </div>
+                                  {!isRefund && (
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      <button
+                                        onClick={() => handleEditPayment(payment, sale)}
+                                        className="btn-edit-payment"
+                                        style={{
+                                          padding: '4px 8px',
+                                          background: '#3b82f6',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          fontSize: '12px',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        {t('edit') || 'Edit'}
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeletePayment(sale.id, payment.id)}
+                                        className="btn-delete-payment"
+                                        style={{
+                                          padding: '4px 8px',
+                                          background: '#ef4444',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '4px',
+                                          fontSize: '12px',
+                                          cursor: 'pointer',
+                                          marginLeft: '10px'
+                                        }}
+                                      >
+                                        {t('delete')}
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                                {index > 0 && ( // Don't show delete for initial payment
-                                  <button
-                                    onClick={() => handleDeletePayment(sale.id, payment.id)}
-                                    className="btn-delete-payment"
-                                    style={{
-                                      padding: '4px 8px',
-                                      background: '#ef4444',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      fontSize: '12px',
-                                      cursor: 'pointer',
-                                      marginLeft: '10px'
-                                    }}
-                                  >
-                                    {t('delete')}
-                                  </button>
-                                )}
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
                             <div>{t('noPaymentHistory')}</div>
                           )}
@@ -995,13 +1077,29 @@ export default function LoanManagement() {
                 type="number"
                 className="form-input"
                 value={paymentAmount || ''}
-                onChange={(e) => setPaymentAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  // Limit to remaining amount
+                  if (value <= selectedSale.remainingAmount) {
+                    setPaymentAmount(e.target.value);
+                  } else {
+                    setPaymentAmount(selectedSale.remainingAmount.toString());
+                  }
+                }}
                 placeholder={t('enterAmountBeingPaid')}
                 max={selectedSale.remainingAmount}
               />
               {paymentAmount && (
-                <div style={{ marginTop: '8px', fontSize: '13px', color: '#6b7280' }}>
-                  {t('remainingAfterPayment')}: PKR {(selectedSale.remainingAmount - parseFloat(paymentAmount || 0)).toLocaleString()}
+                <div style={{ marginTop: '8px', fontSize: '13px' }}>
+                  {parseFloat(paymentAmount) > selectedSale.remainingAmount ? (
+                    <div style={{ color: '#ef4444' }}>
+                      {t('amountExceedsRemaining') || 'Amount cannot exceed remaining balance'}
+                    </div>
+                  ) : (
+                    <div style={{ color: '#6b7280' }}>
+                      {t('remainingAfterPayment')}: PKR {Math.max(0, selectedSale.remainingAmount - parseFloat(paymentAmount || 0)).toLocaleString()}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1046,7 +1144,7 @@ export default function LoanManagement() {
               <button 
                 className="btn btn-primary"
                 onClick={handlePayment}
-                disabled={!paymentAmount || loading || parseFloat(paymentAmount) <= 0}
+                disabled={!paymentAmount || loading || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > selectedSale.remainingAmount}
               >
                 {loading ? t('processing') : t('recordPayment')}
               </button>
@@ -1054,6 +1152,96 @@ export default function LoanManagement() {
           </div>
         </div>
       )}
+      
+      {/* Edit Payment Modal */}
+      {showEditPaymentModal && editingPayment && selectedSale && (
+        <div className="modal">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2 className="modal-title">{t('editPayment') || 'Edit Payment'}</h2>
+              <p className="modal-subtitle">
+                {t('sale')} #{selectedSale.id} - {selectedSale.customer?.name || t('walkInCustomer')}
+              </p>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('paymentAmount')}</label>
+              <input
+                type="number"
+                className="form-input"
+                value={paymentAmount || ''}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder={t('enterAmountPaid')}
+              />
+              <div style={{ marginTop: '8px', fontSize: '13px', color: '#6b7280' }}>
+                {t('currentAmount') || 'Current amount'}: PKR {parseFloat(editingPayment.amountPaid).toLocaleString()}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('paymentDate') || 'Payment Date'}</label>
+              <input
+                type="date"
+                className="form-input"
+                value={paymentDate || ''}
+                onChange={(e) => setPaymentDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('paymentMethod')}</label>
+              <div className="payment-methods">
+                {['cash', 'card', 'bank'].map(method => (
+                  <button
+                    key={method}
+                    className={`payment-method-btn ${paymentMethod === method ? 'active' : ''}`}
+                    onClick={() => setPaymentMethod(method)}
+                  >
+                    {t(method)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('notesOptional')}</label>
+              <textarea
+                className="form-textarea"
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                placeholder={t('addNotesAboutPayment')}
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowEditPaymentModal(false);
+                  setEditingPayment(null);
+                  setSelectedSale(null);
+                  setPaymentAmount('');
+                  setPaymentNotes('');
+                  setPaymentDate('');
+                }}
+              >
+                {t('cancel')}
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleUpdatePayment}
+                disabled={!paymentAmount || loading || parseFloat(paymentAmount) <= 0}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)'
+                }}
+              >
+                {loading ? t('updating') || 'Updating...' : t('updatePayment') || 'Update Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Custom Confirmation Dialog */}
       {showConfirmDialog && (
         <div style={{
