@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 export function DatabaseCleaner() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectAllLoading, setSelectAllLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [databaseInfo, setDatabaseInfo] = useState(null);
   const [selectedItems, setSelectedItems] = useState({
@@ -122,7 +123,11 @@ export function DatabaseCleaner() {
     }));
   };
 
-  const handleSelectAll = () => {
+  const handleSelectAll = async () => {
+    setSelectAllLoading(true);
+    // Add a small delay to show the processing state
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const allSelected = Object.values(selectedItems).every(value => value);
     const newValue = !allSelected;
     const newSelectedItems = {};
@@ -130,6 +135,7 @@ export function DatabaseCleaner() {
       newSelectedItems[key] = newValue;
     });
     setSelectedItems(newSelectedItems);
+    setSelectAllLoading(false);
   };
 
   const getSelectedCount = () => {
@@ -171,7 +177,7 @@ export function DatabaseCleaner() {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="destructive" size="sm" className="w-full">
+          <Button variant="destructive" size="sm" className="w-full cursor-pointer transition-all hover:scale-105">
             <Database className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Clean Database</span>
             <span className="sm:hidden">Clean DB</span>
@@ -220,15 +226,15 @@ export function DatabaseCleaner() {
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto cursor-pointer transition-all hover:scale-105"
             >
-              Cancel
+              {loading ? 'Please wait...' : 'Cancel'}
             </Button>
             <Button
               variant="destructive"
               onClick={fetchDatabaseInfo}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto cursor-pointer transition-all hover:scale-105"
             >
               {loading ? (
                 <>
@@ -265,9 +271,17 @@ export function DatabaseCleaner() {
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
-                  className="w-full sm:w-auto"
+                  disabled={loading || selectAllLoading}
+                  className="w-full sm:w-auto cursor-pointer transition-all hover:scale-105"
                 >
-                  {allSelected ? 'Deselect All' : 'Select All'}
+                  {selectAllLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    allSelected ? 'Deselect All' : 'Select All'
+                  )}
                 </Button>
                 <Badge variant="destructive" className="text-xs sm:text-sm">
                   <span className="hidden sm:inline">Selected records to delete: </span>
@@ -474,15 +488,15 @@ export function DatabaseCleaner() {
               variant="outline"
               onClick={() => setConfirmOpen(false)}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto cursor-pointer transition-all hover:scale-105"
             >
-              Cancel
+              {loading ? 'Please wait...' : 'Cancel'}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCleanDatabase}
               disabled={loading || !someSelected}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto cursor-pointer transition-all hover:scale-105"
             >
               {loading ? (
                 <>

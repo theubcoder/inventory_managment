@@ -861,35 +861,6 @@ export default function Ograi() {
         </div>
       </div>
 
-      {suppliers.length > 0 && (
-        <div className="suppliers-section">
-          <h2 className="section-title">{t('suppliersOverview')}</h2>
-          <div className="suppliers-grid">
-            {suppliers.map(supplier => {
-              const summary = getSupplierSummary(supplier.name);
-              return (
-                <div
-                  key={supplier.id}
-                  className={`supplier-card ${selectedSupplier?.id === supplier.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedSupplier(supplier)}
-                >
-                  <div className="supplier-name">{supplier.name}</div>
-                  <div className="supplier-info">
-                    <div className="info-item">
-                      <div className="info-label">{t('totalDue')}</div>
-                      <div className="info-value">PKR {summary.totalRemaining.toLocaleString()}</div>
-                    </div>
-                    <div className="info-item">
-                      <div className="info-label">{t('transportDue')}</div>
-                      <div className="info-value">PKR {summary.totalTransportDue.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="transactions-table">
         <h2 className="section-title">{t('transactionHistory')}</h2>

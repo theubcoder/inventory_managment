@@ -12,6 +12,7 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Utensils,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -41,19 +42,9 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      name: "Naeem Ullah",
+      logo: Utensils,
+      plan: "Bartan Store",
     },
   ],
   navMain: [
