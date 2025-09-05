@@ -1,11 +1,53 @@
-import createMiddleware from 'next-intl/middleware';
-import {routing} from './i18n/routing';
- 
-export default createMiddleware(routing);
- 
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import createMiddleware from 'next-intl/middleware'
+import { routing } from './i18n/routing'
+
+const intlMiddleware = createMiddleware(routing)
+
+export default auth((req) => {
+  const isLoggedIn = !!req.auth
+  const isOnDashboard = req.nextUrl.pathname.startsWith('/dashboard')
+  const isOnLogin = req.nextUrl.pathname.startsWith('/login')
+  const isOnAPI = req.nextUrl.pathname.startsWith('/api')
+  const isOnAuthAPI = req.nextUrl.pathname.startsWith('/api/auth')
+  const isRoot = req.nextUrl.pathname === '/'
+
+  // Allow auth API routes
+  if (isOnAuthAPI) {
+    return NextResponse.next()
+  }
+
+  // Handle i18n routing first for non-auth routes
+  if (!isOnAuthAPI && !isOnAPI) {
+    const response = intlMiddleware(req)
+    if (response) {
+      return response
+    }
+  }
+
+  // Redirect root to dashboard if logged in, otherwise to login
+  if (isRoot) {
+    if (isLoggedIn) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    } else {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+  }
+
+  // If user is not logged in and trying to access protected routes
+  if (!isLoggedIn && (isOnDashboard || isOnAPI)) {
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
+
+  // If user is logged in and trying to access login page
+  if (isLoggedIn && isOnLogin) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  return NextResponse.next()
+})
+
 export const config = {
-  // Match all pathnames except for
-  // - … if they start with `/api`, `/trpc`, `/_next` or `/_vercel`
-  // - … the ones containing a dot (e.g. `favicon.ico`)
-  matcher: '/((?!api|trpc|_next|_vercel|.*\\..*).*)'
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|public).*)', '/']
+}

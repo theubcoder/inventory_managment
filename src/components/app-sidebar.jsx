@@ -45,9 +45,9 @@ import { useLocale } from "next-intl"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.svg",
+    name: "Admin",
+    email: "thenaeemullahpk@gmail.com",
+    avatar: "/avatars/admin.svg",
   },
   teams: [
     {
@@ -147,6 +147,7 @@ const data = {
 }
 
 export function AppSidebar({
+  session,
   ...props
 }) {
 
@@ -303,7 +304,7 @@ const menuItemsUr = [
         <NavProjects projects={data.projects} />
       </SidebarContent> */}
       <SidebarFooter>
-        <NavUserWithCleaner user={data.user} />
+        <NavUserWithCleaner user={session?.user || data.user} />
       </SidebarFooter>
       <SidebarRail />
 

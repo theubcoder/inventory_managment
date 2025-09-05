@@ -4,6 +4,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/components/NotificationSystem";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from "next-intl";
+import { Providers } from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,9 +28,11 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        <NotificationProvider>
-          <LanguageProvider>{children}</LanguageProvider>
-        </NotificationProvider>
+        <Providers>
+          <NotificationProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </NotificationProvider>
+        </Providers>
         <Toaster richColors position="top-center" />
       </body>
     </html>
