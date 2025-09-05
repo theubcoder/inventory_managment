@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { CalendarIcon, ChartBarIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
 
 export default function Reports() {
+  const t = useTranslations('Reports');
+  const tCommon = useTranslations('Common');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [availableDates, setAvailableDates] = useState([]);

@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useNotification, useConfirm } from '../components/NotificationSystem';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function Returns() {
-  const { t, language } = useLanguage();
+  const t = useTranslations('Returns');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCustomerName, setSearchCustomerName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -257,7 +259,7 @@ export default function Returns() {
   };
 
   return (
-    <div className="returns" dir={language === 'ur' ? 'rtl' : 'ltr'}>
+    <div className="returns" dir={locale === 'ur' ? 'rtl' : 'ltr'}>
       <style jsx>{`
         .returns {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

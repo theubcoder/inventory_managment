@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslations } from 'next-intl';
 import { useNotification } from '../components/NotificationSystem';
 
 export default function LoanManagement() {
-  const { t } = useLanguage();
+  const t = useTranslations('Loans');
+  const tCommon = useTranslations('Common');
   const { showSuccess, showError, showInfo } = useNotification();
   const [sales, setSales] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);

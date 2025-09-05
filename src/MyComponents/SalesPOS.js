@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useNotification } from '../components/NotificationSystem';
-import { useLanguage } from '../contexts/LanguageContext';
 
 export default function SalesPOS() {
-  const { t } = useLanguage();
+  const t = useTranslations('Sales');
+  const tCommon = useTranslations('Common');
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');

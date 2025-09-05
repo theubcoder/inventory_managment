@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslations } from 'next-intl';
 import { useNotification, useConfirm } from '../components/NotificationSystem';
 
 export default function OgraiCleared() {
-  const { t, language } = useLanguage();
+  const t = useTranslations('Ograi');
+  const tCommon = useTranslations('Common');
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
   const { confirm, ConfirmComponent } = useConfirm();
   const [suppliers, setSuppliers] = useState([]);

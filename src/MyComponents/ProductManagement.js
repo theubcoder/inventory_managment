@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useNotification, useConfirm } from '../components/NotificationSystem';
-import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ProductManagement() {
   const { showSuccess, showError, showWarning } = useNotification();
   const { confirm, ConfirmComponent } = useConfirm();
-  const { t } = useLanguage();
+  const t = useTranslations('Products');
+  const tCommon = useTranslations('Common');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -131,6 +132,7 @@ export default function ProductManagement() {
         if (response.ok) {
           await fetchProducts();
           setEditingProduct(null);
+          showSuccess(t('productUpdated'));
         } else {
           showError(t('failedToUpdateProduct'));
         }
@@ -144,6 +146,7 @@ export default function ProductManagement() {
         
         if (response.ok) {
           await fetchProducts();
+          showSuccess(t('productAdded'));
         } else {
           showError(t('failedToCreateProduct'));
         }

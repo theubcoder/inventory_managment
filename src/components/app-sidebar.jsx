@@ -35,6 +35,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/contexts/LanguageContext"
+import LocaleSwitcher from "@/LocaleSwitcher"
+import { useLocale } from "next-intl"
 
 // This is sample data.
 
@@ -215,17 +217,86 @@ const menuItems  = [
     items: [],
   },
 ];
+
+const menuItemsUr = [
+  {
+    title: "ڈیش بورڈ",
+    id: "dashboard",
+    url: "#",
+    icon: Home,
+    items: [
+      { title: "جائزہ", url: "/dashboard" },
+    ],
+  },
+  {
+    title: "مصنوعات",
+    id: "products",
+    url: "#",
+    icon: Package,
+    items: [
+      { title: "تمام مصنوعات", url: "/dashboard/allProducts" },
+    ],
+  },
+  {
+    title: "فروخت",
+    id: "sales",
+    url: "#",
+    icon: ShoppingCart,
+    items: [
+      { title: "فروخت", url: "/dashboard/sales" },
+    ],
+  },
+  {
+    title: "قرضے",
+    id: "loans",
+    url: "#",
+    icon: Coins,
+    items: [
+      { title: "تاریخچہ", url: "/dashboard/loans" },
+    ],
+  },
+  {
+    title: "اوگرائی",
+    id: "ograi",
+    url: "#",
+    icon: CreditCard,
+    items: [
+      { title: "زیر التواء", url: "/dashboard/ograi" },
+      { title: "کلیئر", url: "/dashboard/ograi/cleared" },
+    ],
+  },
+  {
+    title: "واپسی",
+    id: "returns",
+    url: "#",
+    icon: RotateCcw,
+    items: [
+      { title: "مصنوعات کی واپسی", url: "/dashboard/return" },
+    ],
+  },
+  {
+    title: "رپورٹس",
+    id: "reports",
+    url: "/dashboard/reports",
+    icon: FileText,
+    items: [],
+  },
+];
+
 ;
+  const locale = useLocale();
+  const dir = locale === "ur" ? "ur" : "en";
+
+
 
   return (
-    <Sidebar collapsible="icon" {...props}>
-     
+    <Sidebar collapsible="icon" {...props}     side={dir === "ur" ? "right" : "left"}> 
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} menuItems={menuItems}/>
-    
+        <NavMain items={data.navMain} menuItems={menuItems} menuItemsUr={menuItemsUr}/> 
+        <LocaleSwitcher/>
       </SidebarContent>
       {/* <SidebarContent>
         <NavMain items={data.navMain} />
@@ -235,6 +306,7 @@ const menuItems  = [
         <NavUserWithCleaner user={data.user} />
       </SidebarFooter>
       <SidebarRail />
+
     </Sidebar>
   );
 }

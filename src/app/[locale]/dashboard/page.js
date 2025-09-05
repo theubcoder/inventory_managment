@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { 
   ChartBarIcon, 
   CubeIcon, 
@@ -13,6 +14,8 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function Dashboard() {
+  const t = useTranslations('Dashboard')
+  const tCommon = useTranslations('Common')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [availableDates, setAvailableDates] = useState([])
@@ -92,7 +95,7 @@ export default function Dashboard() {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading dashboard...</div>
+          <div className="text-lg">{t('loading')}</div>
         </div>
       </div>
     )
@@ -102,7 +105,7 @@ export default function Dashboard() {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-600">Failed to load dashboard data</div>
+          <div className="text-lg text-red-600">{t('error')}</div>
         </div>
       </div>
     )
@@ -110,7 +113,7 @@ export default function Dashboard() {
 
   const statsCards = [
     {
-      title: 'Total Products',
+      title: t('stats.totalProducts'),
       value: data.totalProducts,
       icon: CubeIcon,
       change: null,
@@ -118,7 +121,7 @@ export default function Dashboard() {
       bgColor: 'bg-blue-500',
     },
     {
-      title: `Sales (${data.dateRange})`,
+      title: `${t('stats.sales')} (${data.dateRange})`,
       value: data.periodSales,
       icon: ShoppingCartIcon,
       change: null,
@@ -126,7 +129,7 @@ export default function Dashboard() {
       bgColor: 'bg-green-500',
     },
     {
-      title: 'Total Customers',
+      title: t('stats.totalCustomers'),
       value: data.totalCustomers,
       icon: UsersIcon,
       change: null,
@@ -134,16 +137,16 @@ export default function Dashboard() {
       bgColor: 'bg-purple-500',
     },
     {
-      title: `Revenue (${data.dateRange})`,
-      value: `PKR ${data.periodRevenue.toLocaleString()}`,
+      title: `${t('stats.revenue')} (${data.dateRange})`,
+      value: `${tCommon('currency')} ${data.periodRevenue.toLocaleString()}`,
       icon: ChartBarIcon,
       change: null,
       changeType: 'increase',
       bgColor: 'bg-orange-500',
     },
     {
-      title: `Profit (${data.dateRange})`,
-      value: `PKR ${data.periodProfit.toLocaleString()}`,
+      title: `${t('stats.profit')} (${data.dateRange})`,
+      value: `${tCommon('currency')} ${data.periodProfit.toLocaleString()}`,
       icon: BanknotesIcon,
       change: null,
       changeType: 'increase',
@@ -159,12 +162,12 @@ export default function Dashboard() {
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome to your inventory management system</p>
+            <h1 className="text-3xl font-bold text-gray-800">{t('title')}</h1>
+            <p className="text-gray-600 mt-2">{t('subtitle')}</p>
             {availableDates.length > 0 && (
               <div className="mt-2 flex items-center space-x-2 text-sm">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  📅 {availableDates.length} days with data available
+                  📅 {t('daysWithData', {count: availableDates.length})}
                 </span>
                 <span className="text-gray-500">
                   ({getMinDate()} to {getMaxDate()})
@@ -177,7 +180,7 @@ export default function Dashboard() {
           <div className="mt-4 lg:mt-0 flex items-center space-x-4 bg-white p-4 rounded-lg shadow">
             <CalendarIcon className="w-5 h-5 text-gray-500" />
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">From:</label>
+              <label className="text-sm font-medium text-gray-700">{t('dateFilter.from')}</label>
               <input
                 type="date"
                 value={dateRange.startDate}
@@ -194,7 +197,7 @@ export default function Dashboard() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">To:</label>
+              <label className="text-sm font-medium text-gray-700">{t('dateFilter.to')}</label>
               <input
                 type="date"
                 value={dateRange.endDate}
@@ -215,7 +218,7 @@ export default function Dashboard() {
               disabled={!dateRange.startDate || !dateRange.endDate || loading}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
             >
-              {loading ? 'Loading...' : 'Apply Filter'}
+              {loading ? t('dateFilter.loading') : t('dateFilter.apply')}
             </button>
             <button
               onClick={() => {
@@ -224,7 +227,7 @@ export default function Dashboard() {
               }}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
             >
-              Clear
+              {t('dateFilter.clear')}
             </button>
           </div>
         </div>
@@ -260,16 +263,16 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Orders</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('recentOrders.title')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Sale ID</th>
-                  <th className="pb-3 font-medium text-gray-600">Customer</th>
-                  <th className="pb-3 font-medium text-gray-600">Amount</th>
-                  <th className="pb-3 font-medium text-gray-600">Profit</th>
-                  <th className="pb-3 font-medium text-gray-600">Status</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('recentOrders.saleId')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('recentOrders.customer')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('recentOrders.amount')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('recentOrders.profit')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('recentOrders.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -277,8 +280,8 @@ export default function Dashboard() {
                   <tr key={order.id} className="border-b hover:bg-gray-50">
                     <td className="py-3">#{order.id}</td>
                     <td className="py-3">{order.description.split(' to ')[1]}</td>
-                    <td className="py-3">PKR {order.amount.toLocaleString()}</td>
-                    <td className="py-3 text-green-600">PKR {order.profit.toLocaleString()}</td>
+                    <td className="py-3">{tCommon('currency')} {order.amount.toLocaleString()}</td>
+                    <td className="py-3 text-green-600">{tCommon('currency')} {order.profit.toLocaleString()}</td>
                     <td className="py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium
                         ${order.status === 'paid' ? 'bg-green-100 text-green-600' : 
@@ -291,7 +294,7 @@ export default function Dashboard() {
                 )) : (
                   <tr>
                     <td colSpan="5" className="py-8 text-center text-gray-500">
-                      No recent sales found
+                      {t('recentOrders.noSales')}
                     </td>
                   </tr>
                 )}
@@ -302,23 +305,23 @@ export default function Dashboard() {
 
         {/* Low Stock Alert */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Low Stock Alert</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('lowStock.title')}</h2>
           <div className="space-y-3">
             {lowStockProducts.length > 0 ? lowStockProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-800">{product.name}</p>
-                  <p className="text-sm text-gray-600">Category: {product.category || 'N/A'}</p>
+                  <p className="text-sm text-gray-600">{t('lowStock.category')} {product.category || 'N/A'}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-red-600">{product.quantity}</p>
-                  <p className="text-xs text-gray-500">Current Stock</p>
+                  <p className="text-xs text-gray-500">{t('lowStock.currentStock')}</p>
                 </div>
               </div>
             )) : (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">✅</div>
-                <p>All products are well stocked!</p>
+                <p>{t('lowStock.allStocked')}</p>
               </div>
             )}
           </div>

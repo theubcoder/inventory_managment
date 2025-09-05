@@ -1,45 +1,49 @@
-"use client"
+"use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { useLocale } from "next-intl";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
-import Link from "next/link";
+} from "@/components/ui/sidebar";
 
-export function NavMain({
-  items,
-  menuItems
-}) {
+export function NavMain({ menuItems, menuItemsUr }) {
+  const locale = useLocale();
+  const items = locale === "ur" ? menuItemsUr : menuItems;
+
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {menuItems.map((item) => (
+        {items.map((item) =>
           item.items && item.items.length > 0 ? (
             <Collapsible
               key={item.id}
               asChild
               defaultOpen={item.isActive}
-              className="group/collapsible">
+              className="group/collapsible"
+            >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={item.title}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                    <ChevronRight
-                      className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    {locale === "en" ? (
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    ) : (
+                      <ChevronLeft className="mr-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -67,7 +71,7 @@ export function NavMain({
               </SidebarMenuButton>
             </SidebarMenuItem>
           )
-        ))}
+        )}
       </SidebarMenu>
     </SidebarGroup>
   );
