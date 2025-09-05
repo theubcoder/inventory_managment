@@ -84,7 +84,7 @@ export default function Ograi() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch('/api/ograi/transactions');
+      const response = await fetch('/api/ograi/transactions?status=pending');
       if (response.ok) {
         const data = await response.json();
         setTransactions(data);

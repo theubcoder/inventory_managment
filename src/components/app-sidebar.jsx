@@ -183,7 +183,7 @@ const menuItems  = [
     url: "#",
     items: [
       { title: "Pending", url: "/dashboard/ograi" },
-      { title: "Cleared", url: "#" },
+      { title: "Cleared", url: "/dashboard/ograi/cleared" },
     ],
   },
   {
@@ -197,11 +197,8 @@ const menuItems  = [
   {
     title: "Reports",
     id: "reports",
-    url: "#",
-    items: [
-      { title: "Monthly", url: "/dashboard/reports" },
-      { title: "Annual", url: "#" },
-    ],
+    url: "/dashboard/reports",
+    items: [],
   },
 ];
 ;

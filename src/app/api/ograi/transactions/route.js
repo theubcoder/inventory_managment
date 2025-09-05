@@ -1,10 +1,34 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
 
-// GET all transactions
-export async function GET() {
+// GET all transactions with optional filtering
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status'); // 'pending' or 'cleared'
+    
+    let whereCondition = {};
+    
+    if (status === 'pending') {
+      // Show transactions that have remaining amount > 0 OR transport remaining > 0
+      whereCondition = {
+        OR: [
+          { remainingAmount: { gt: 0 } },
+          { transportRemaining: { gt: 0 } }
+        ]
+      };
+    } else if (status === 'cleared') {
+      // Show transactions that are fully paid (both remaining amounts are 0)
+      whereCondition = {
+        AND: [
+          { remainingAmount: { lte: 0 } },
+          { transportRemaining: { lte: 0 } }
+        ]
+      };
+    }
+    
     const transactions = await prisma.ograiTransaction.findMany({
+      where: whereCondition,
       include: {
         supplier: true,
         paymentHistory: {
