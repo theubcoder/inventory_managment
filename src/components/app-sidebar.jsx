@@ -43,9 +43,9 @@ import { useLanguage } from "@/contexts/LanguageContext"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.svg",
+    name: "Admin",
+    email: "thenaeemullahpk@gmail.com",
+    avatar: "/avatars/admin.svg",
   },
   teams: [
     {
@@ -145,6 +145,7 @@ const data = {
 }
 
 export function AppSidebar({
+  session,
   ...props
 }) {
 
@@ -232,7 +233,7 @@ const menuItems  = [
         <NavProjects projects={data.projects} />
       </SidebarContent> */}
       <SidebarFooter>
-        <NavUserWithCleaner user={data.user} />
+        <NavUserWithCleaner user={session?.user || data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

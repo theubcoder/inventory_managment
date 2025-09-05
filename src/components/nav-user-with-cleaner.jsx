@@ -6,6 +6,7 @@ import {
   LogOut,
   Database,
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 import {
   Avatar,
@@ -84,7 +85,7 @@ export function NavUserWithCleaner({ user }) {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>

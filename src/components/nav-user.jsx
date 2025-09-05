@@ -8,6 +8,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 import {
   Avatar,
@@ -94,7 +95,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
               <LogOut />
               Log out
             </DropdownMenuItem>

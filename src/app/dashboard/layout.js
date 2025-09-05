@@ -4,13 +4,20 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@radix-ui/react-dropdown-menu"
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
-export default function DashboardLayout({ children }) {
+export default async function DashboardLayout({ children }) {
+  const session = await auth()
+  
+  if (!session) {
+    redirect('/login')
+  }
   return (
 
     
   <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar session={session} />
         <SidebarInset>
 
        <header
