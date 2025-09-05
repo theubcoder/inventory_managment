@@ -13,6 +13,13 @@ import {
   Settings2,
   SquareTerminal,
   Utensils,
+  Home,
+  Package,
+  ShoppingCart,
+  Coins,
+  CreditCard,
+  RotateCcw,
+  FileText,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -147,6 +154,7 @@ const menuItems  = [
     title: "Dashboard",
     id: "dashboard",
     url: "#",
+    icon: Home,
     items: [
       { title: "Overview", url: "/dashboard" },
 
@@ -156,6 +164,7 @@ const menuItems  = [
     title: "Products",
     id: "products",
     url: "#",
+    icon: Package,
     items: [
       { title: "All Products", url: "/dashboard/allProducts" },
     ],
@@ -164,6 +173,7 @@ const menuItems  = [
     title: "Sales",
     id: "sales",
     url: "#",
+    icon: ShoppingCart,
     items: [
       { title: "Sales", url: "/dashboard/sales" },
     
@@ -173,6 +183,7 @@ const menuItems  = [
     title: "Loans",
     id: "loans",
     url: "#",
+    icon: Coins,
     items: [
       { title: "History", url: "/dashboard/loans" },
     ],
@@ -181,6 +192,7 @@ const menuItems  = [
     title: "Ograi",
     id: "ograi",
     url: "#",
+    icon: CreditCard,
     items: [
       { title: "Pending", url: "/dashboard/ograi" },
       { title: "Cleared", url: "/dashboard/ograi/cleared" },
@@ -190,6 +202,7 @@ const menuItems  = [
     title: "Returns",
     id: "returns",
     url: "#",
+    icon: RotateCcw,
     items: [
       { title: "Product Returns", url: "/dashboard/return" },
     ],
@@ -198,6 +211,7 @@ const menuItems  = [
     title: "Reports",
     id: "reports",
     url: "/dashboard/reports",
+    icon: FileText,
     items: [],
   },
 ];

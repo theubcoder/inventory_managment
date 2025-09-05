@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   ChevronsUpDown,
   LogOut,
+  Database,
 } from "lucide-react"
 
 import {
@@ -30,7 +31,7 @@ import { DatabaseCleaner } from "@/components/database-cleaner"
 import { Separator } from "@/components/ui/separator"
 
 export function NavUserWithCleaner({ user }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, state } = useSidebar()
 
   return (
     <>

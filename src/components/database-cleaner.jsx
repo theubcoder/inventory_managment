@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, AlertTriangle, Database, Loader2, Check } from 'lucide-react';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   Dialog,
   DialogContent,
@@ -18,8 +19,15 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function DatabaseCleaner() {
+  const { state } = useSidebar();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectAllLoading, setSelectAllLoading] = useState(false);
@@ -173,16 +181,45 @@ export function DatabaseCleaner() {
   const allSelected = Object.values(selectedItems).every(value => value);
   const someSelected = Object.values(selectedItems).some(value => value);
 
+  const button = (
+    <Button 
+      variant="destructive" 
+      size="sm" 
+      className={`w-full cursor-pointer transition-all hover:scale-105 ${
+        state === "collapsed" ? "justify-center" : ""
+      }`}
+    >
+      <Database className={state === "collapsed" ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+      {state !== "collapsed" && (
+        <>
+          <span className="hidden sm:inline">Clean Database</span>
+          <span className="sm:hidden">Clean DB</span>
+        </>
+      )}
+    </Button>
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="destructive" size="sm" className="w-full cursor-pointer transition-all hover:scale-105">
-            <Database className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Clean Database</span>
-            <span className="sm:hidden">Clean DB</span>
-          </Button>
-        </DialogTrigger>
+        {state === "collapsed" ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  {button}
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Clean Database</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <DialogTrigger asChild>
+            {button}
+          </DialogTrigger>
+        )}
         <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base sm:text-lg">Clean Database</DialogTitle>
