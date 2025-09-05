@@ -1095,7 +1095,28 @@ export default function Ograi() {
                     type="number"
                     className="form-input"
                     value={formData.transportPaid || ''}
-                    onChange={(e) => setFormData({...formData, transportPaid: e.target.value})}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      const value = parseFloat(inputValue || 0);
+                      const maxAmount = parseFloat(formData.transportFee || 0);
+                      
+                      if (value > maxAmount) {
+                        setFormData({...formData, transportPaid: maxAmount.toString()});
+                        e.target.value = maxAmount.toString();
+                      } else {
+                        setFormData({...formData, transportPaid: inputValue});
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseFloat(e.target.value || 0);
+                      const maxAmount = parseFloat(formData.transportFee || 0);
+                      if (value > maxAmount) {
+                        setFormData({...formData, transportPaid: maxAmount.toString()});
+                        e.target.value = maxAmount.toString();
+                      }
+                    }}
+                    max={formData.transportFee}
+                    placeholder={`Max: PKR ${parseFloat(formData.transportFee || 0).toLocaleString()}`}
                   />
                 </div>
 

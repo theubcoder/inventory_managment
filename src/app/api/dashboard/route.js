@@ -7,6 +7,48 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const getAvailableDates = searchParams.get('availableDates');
+
+    // If requesting available dates only
+    if (getAvailableDates === 'true') {
+      const salesDates = await prisma.sale.findMany({
+        select: {
+          createdAt: true
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
+      });
+
+      const expensesDates = await prisma.expense.findMany({
+        select: {
+          date: true
+        },
+        orderBy: {
+          date: 'asc'
+        }
+      });
+
+      // Combine and get unique dates
+      const allDates = new Set();
+      
+      salesDates.forEach(sale => {
+        const date = new Date(sale.createdAt).toISOString().split('T')[0];
+        allDates.add(date);
+      });
+
+      expensesDates.forEach(expense => {
+        const date = new Date(expense.date).toISOString().split('T')[0];
+        allDates.add(date);
+      });
+
+      const availableDates = Array.from(allDates).sort();
+
+      return NextResponse.json({ 
+        availableDates: availableDates,
+        totalDates: availableDates.length 
+      });
+    }
 
     // Create date filter
     let dateFilter = {};

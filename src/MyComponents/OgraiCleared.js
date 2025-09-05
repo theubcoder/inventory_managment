@@ -506,41 +506,6 @@ export default function OgraiCleared() {
         </div>
       </div>
 
-      {suppliers.length > 0 && (
-        <div className="suppliers-section">
-          <h2 className="section-title">Completed Supplier Transactions</h2>
-          <div className="suppliers-grid">
-            {suppliers.map(supplier => {
-              const summary = getSupplierSummary(supplier.name);
-              const hasCompletedTransactions = transactions.some(t => t.supplierName === supplier.name);
-              
-              if (!hasCompletedTransactions) return null;
-              
-              return (
-                <div
-                  key={supplier.id}
-                  className={`supplier-card ${selectedSupplier?.id === supplier.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedSupplier(supplier)}
-                >
-                  <div className="supplier-name">{supplier.name}</div>
-                  <div className="supplier-info">
-                    <div className="info-item">
-                      <div className="info-label">Total Business</div>
-                      <div className="info-value">PKR {summary.totalPurchases.toLocaleString()}</div>
-                    </div>
-                    <div className="info-item">
-                      <div className="info-label">Transactions</div>
-                      <div className="info-value">
-                        {transactions.filter(t => t.supplierName === supplier.name).length}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="transactions-table">
         <h2 className="section-title">Cleared Transaction History</h2>

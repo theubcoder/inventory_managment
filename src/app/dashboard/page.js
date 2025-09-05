@@ -15,10 +15,23 @@ import {
 export default function Dashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [availableDates, setAvailableDates] = useState([])
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
   })
+
+  const fetchAvailableDates = async () => {
+    try {
+      const response = await fetch('/api/dashboard?availableDates=true')
+      const datesData = await response.json()
+      if (datesData.availableDates) {
+        setAvailableDates(datesData.availableDates)
+      }
+    } catch (error) {
+      console.error('Error fetching available dates:', error)
+    }
+  }
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -46,8 +59,23 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    fetchAvailableDates()
     fetchDashboardData()
   }, [])
+
+  const isDateDisabled = (date) => {
+    return availableDates.length > 0 && !availableDates.includes(date)
+  }
+
+  const getMinDate = () => {
+    if (availableDates.length === 0) return ''
+    return availableDates.sort()[0]
+  }
+
+  const getMaxDate = () => {
+    if (availableDates.length === 0) return ''
+    return availableDates.sort()[availableDates.length - 1]
+  }
 
   const handleDateRangeChange = (field, value) => {
     setDateRange(prev => ({
@@ -133,6 +161,16 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
             <p className="text-gray-600 mt-2">Welcome to your inventory management system</p>
+            {availableDates.length > 0 && (
+              <div className="mt-2 flex items-center space-x-2 text-sm">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  📅 {availableDates.length} days with data available
+                </span>
+                <span className="text-gray-500">
+                  ({getMinDate()} to {getMaxDate()})
+                </span>
+              </div>
+            )}
           </div>
           
           {/* Date Range Filter */}
@@ -143,8 +181,16 @@ export default function Dashboard() {
               <input
                 type="date"
                 value={dateRange.startDate}
-                onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
-                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                min={getMinDate()}
+                max={getMaxDate()}
+                onChange={(e) => {
+                  const selectedDate = e.target.value
+                  if (!isDateDisabled(selectedDate)) {
+                    handleDateRangeChange('startDate', selectedDate)
+                  }
+                }}
+                className="border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer transition-all hover:border-blue-400"
+                title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -152,23 +198,31 @@ export default function Dashboard() {
               <input
                 type="date"
                 value={dateRange.endDate}
-                onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
-                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                min={getMinDate()}
+                max={getMaxDate()}
+                onChange={(e) => {
+                  const selectedDate = e.target.value
+                  if (!isDateDisabled(selectedDate)) {
+                    handleDateRangeChange('endDate', selectedDate)
+                  }
+                }}
+                className="border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer transition-all hover:border-blue-400"
+                title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
               />
             </div>
             <button
               onClick={applyDateFilter}
-              disabled={!dateRange.startDate || !dateRange.endDate}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium"
+              disabled={!dateRange.startDate || !dateRange.endDate || loading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
             >
-              Apply Filter
+              {loading ? 'Loading...' : 'Apply Filter'}
             </button>
             <button
               onClick={() => {
                 setDateRange({ startDate: '', endDate: '' })
                 setTimeout(() => fetchDashboardData(), 100)
               }}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium"
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
             >
               Clear
             </button>
