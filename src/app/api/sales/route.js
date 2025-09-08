@@ -329,24 +329,8 @@ export async function DELETE(request) {
         throw new Error('Only fully paid sales can be deleted');
       }
 
-      // Restore product quantities before deleting
-      // Note: If there were returns, the quantities have already been restored
-      // So we only restore quantities that weren't returned
-      for (const item of sale.saleItems) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId }
-        });
-        
-        if (product) {
-          // Since we don't allow deletion with returns, we can safely restore full quantity
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              quantity: product.quantity + item.quantity
-            }
-          });
-        }
-      }
+      // Do not restore product quantities when deleting sales/loans
+      // Products were already sold and should remain out of inventory
 
       // Delete the sale (this will cascade delete saleItems and paymentHistory)
       await tx.sale.delete({

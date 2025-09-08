@@ -115,8 +115,8 @@ export default function LoanManagement() {
   const handleEditPayment = (payment, sale) => {
     setEditingPayment(payment);
     setSelectedSale(sale);
-    setPaymentAmount(payment.amountPaid.toString());
-    setPaymentMethod(payment.paymentMethod);
+    setPaymentAmount(payment.amountPaid ? payment.amountPaid.toString() : '');
+    setPaymentMethod(payment.paymentMethod || 'cash');
     setPaymentNotes(payment.notes || '');
     setPaymentDate(new Date(payment.paymentDate || payment.createdAt).toISOString().split('T')[0]);
     setShowEditPaymentModal(true);
@@ -1175,7 +1175,7 @@ export default function LoanManagement() {
                 placeholder={t('enterAmountPaid')}
               />
               <div style={{ marginTop: '8px', fontSize: '13px', color: '#6b7280' }}>
-                {t('currentAmount') || 'Current amount'}: PKR {parseFloat(editingPayment.amountPaid).toLocaleString()}
+                {t('currentAmount') || 'Current amount'}: PKR {parseFloat(editingPayment?.amountPaid || 0).toLocaleString()}
               </div>
             </div>
 

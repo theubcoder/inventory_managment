@@ -1065,7 +1065,15 @@ export default function Ograi() {
                     type="number"
                     className="form-input"
                     value={formData.amountPaid || ''}
-                    onChange={(e) => setFormData({...formData, amountPaid: e.target.value})}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      const maxAmount = formData.totalAmount || 0;
+                      if (value <= maxAmount) {
+                        setFormData({...formData, amountPaid: e.target.value});
+                      }
+                    }}
+                    max={formData.totalAmount}
+                    min="0"
                     required
                   />
                 </div>
