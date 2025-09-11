@@ -681,21 +681,105 @@ export default function Returns() {
           line-height: 1.5;
         }
 
-        @media (max-width: 768px) {
-          .returns {
-            padding: 20px;
+        @media (max-width: 1024px) {
+          .returns-main-content {
+            flex-direction: column;
+            gap: 20px;
           }
 
-          .main-content {
+          [dir="rtl"] .returns-main-content {
             flex-direction: column;
           }
 
           .right-section {
             width: 100%;
           }
+        }
+
+        @media (max-width: 768px) {
+          .returns-container {
+            padding: 15px;
+          }
 
           .page-title {
             font-size: 28px;
+          }
+
+          .page-subtitle {
+            font-size: 16px;
+          }
+
+          .search-section,
+          .recent-returns,
+          .returns-info-section {
+            padding: 20px;
+          }
+
+          .search-form {
+            flex-direction: column;
+          }
+
+          .sale-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+          }
+
+          .item-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+          }
+
+          .quantity-selector {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .return-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+          }
+
+          .process-btn {
+            padding: 12px;
+            font-size: 14px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .page-title {
+            font-size: 24px;
+          }
+
+          .section-title {
+            font-size: 18px;
+          }
+
+          .item-info {
+            width: 100%;
+          }
+
+          .item-name {
+            font-size: 14px;
+          }
+
+          .item-price {
+            font-size: 12px;
+          }
+
+          .summary-row {
+            font-size: 12px;
+          }
+
+          .return-details {
+            font-size: 12px;
+          }
+
+          .return-amount {
+            font-size: 14px;
           }
         }
       `}</style>

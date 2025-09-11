@@ -20,6 +20,7 @@ export default function SalesPOS() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastSale, setLastSale] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showMobileCart, setShowMobileCart] = useState(false);
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
 
   // Helper function to translate category names
@@ -235,12 +236,17 @@ export default function SalesPOS() {
           height: 100vh;
           background: #f8f9fa;
           margin: 0;
+          overflow: hidden;
         }
 
         .left-panel {
           flex: 1;
           padding: 20px;
-          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          background: #f8f9fa;
+          overflow: hidden;
         }
 
         .right-panel {
@@ -257,6 +263,7 @@ export default function SalesPOS() {
           padding: 20px;
           margin-bottom: 20px;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+          flex-shrink: 0;
         }
 
         .search-title {
@@ -285,6 +292,11 @@ export default function SalesPOS() {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 15px;
+          flex: 1;
+          overflow-y: auto;
+          padding-bottom: 10px;
+          align-content: start;
+          min-height: 0;
         }
 
         .product-card {
@@ -380,6 +392,7 @@ export default function SalesPOS() {
           padding: 20px;
           background: linear-gradient(135deg, #667eea, #764ba2);
           color: white;
+          flex-shrink: 0;
         }
 
         .cart-title {
@@ -397,6 +410,9 @@ export default function SalesPOS() {
           flex: 1;
           overflow-y: auto;
           padding: 20px;
+          padding-bottom: 10px;
+          min-height: 0;
+          max-height: calc(100vh - 280px);
         }
 
         .cart-item {
@@ -477,6 +493,8 @@ export default function SalesPOS() {
           padding: 20px;
           background: white;
           border-top: 1px solid #e5e7eb;
+          margin-top: auto;
+          flex-shrink: 0;
         }
 
         .total-section {
@@ -751,22 +769,336 @@ export default function SalesPOS() {
           font-size: 16px;
         }
 
-        @media (max-width: 768px) {
-          .sales-pos {
-            flex-direction: column;
-          }
-
+        /* Tablet View */
+        @media (max-width: 1024px) {
           .right-panel {
-            width: 100%;
-            height: 50vh;
+            width: 350px;
           }
 
           .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          }
+
+          .modal {
+            width: 90%;
+            max-width: 500px;
+          }
+        }
+
+        /* Mobile View */
+        @media (max-width: 768px) {
+          .sales-pos {
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            background: #f8f9fa;
+            overflow: hidden;
+          }
+
+          .left-panel {
+            padding: 15px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 80px; /* Space for mobile cart button */
+            background: #f8f9fa;
+          }
+
+          /* Removed old right-panel mobile styles as they're now in cart drawer section */
+
+          .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding-bottom: 10px;
+          }
+
+          .product-card {
+            padding: 12px;
+          }
+
+          .product-name {
+            font-size: 13px;
+          }
+
+          .product-price {
+            font-size: 14px;
+          }
+
+          .product-stock {
+            font-size: 11px;
+          }
+
+          .search-section {
+            padding: 15px;
+            margin-bottom: 15px;
+          }
+
+          .search-title {
+            font-size: 18px;
+          }
+
+          .cart-header {
+            padding: 15px 20px;
+            flex-shrink: 0;
+          }
+
+          .cart-items {
+            max-height: calc(100vh - 320px);
+            min-height: 200px;
+          }
+
+          .cart-footer {
+            padding: 15px 20px;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
           }
 
           .payment-methods {
             grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .checkout-form {
+            padding: 15px;
+          }
+
+          .modal {
+            width: 95%;
+            max-width: none;
+            margin: 10px;
+            max-height: 90vh;
+            overflow-y: auto;
+          }
+
+          .modal-header {
+            padding: 15px;
+          }
+
+          .form-group {
+            margin-bottom: 15px;
+          }
+
+          .customer-inputs {
+            flex-direction: column;
+          }
+
+          .customer-inputs input {
+            width: 100%;
+          }
+        }
+
+        /* Small Mobile View */
+        @media (max-width: 480px) {
+          .sales-pos {
+            font-size: 14px;
+          }
+
+          .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 8px;
+          }
+
+          .product-card {
+            padding: 10px;
+          }
+
+          .product-image {
+            font-size: 28px;
+            margin-bottom: 8px;
+          }
+
+          .product-name {
+            font-size: 12px;
+            margin-bottom: 4px;
+          }
+
+          .product-price {
+            font-size: 13px;
+          }
+
+          .product-stock {
+            font-size: 10px;
+          }
+
+          .cart-item {
+            padding: 10px;
+          }
+
+          .cart-item-name {
+            font-size: 13px;
+          }
+
+          .cart-item-price {
+            font-size: 12px;
+          }
+
+          .quantity-controls {
+            gap: 8px;
+          }
+
+          .quantity-btn {
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+          }
+
+          .remove-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+          }
+
+          .total-section {
+            font-size: 13px;
+          }
+
+          .checkout-btn {
+            padding: 12px;
+            font-size: 14px;
+          }
+
+          .receipt-modal {
+            width: 95%;
+          }
+
+          .receipt-content {
+            padding: 20px;
+          }
+
+          .receipt-title {
+            font-size: 20px;
+          }
+
+          .receipt-item {
+            font-size: 12px;
+          }
+
+          .print-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+          }
+        }
+
+        /* Mobile Cart Button and Drawer */
+        .mobile-cart-btn {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .mobile-cart-btn {
+            display: flex;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            z-index: 999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .mobile-cart-btn:hover {
+            transform: scale(1.1);
+          }
+
+          .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+          }
+
+          /* Cart Drawer Overlay */
+          .cart-drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+          }
+
+          .cart-drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+          }
+
+          /* Cart Drawer */
+          .right-panel {
+            position: fixed;
+            right: -100%;
+            top: 0;
+            bottom: 0;
+            width: 85%;
+            max-width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          }
+
+          .right-panel.active {
+            right: 0;
+            display: flex;
+            flex-direction: column;
+          }
+
+        }
+        
+        /* Close button for drawer - Desktop hidden */
+        .drawer-close-btn {
+          display: none;
+        }
+        
+        @media (max-width: 768px) {
+          .drawer-close-btn {
+            display: flex;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1;
+          }
+
+          .drawer-close-btn:hover {
+            background: #e5e7eb;
           }
         }
       `}</style>
@@ -818,7 +1150,31 @@ export default function SalesPOS() {
         </div>
       </div>
 
-      <div className="right-panel">
+      {/* Mobile Cart Button */}
+      <button 
+        className="mobile-cart-btn"
+        onClick={() => setShowMobileCart(true)}
+      >
+        🛒
+        {cart.length > 0 && (
+          <span className="cart-badge">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+        )}
+      </button>
+
+      {/* Cart Drawer Overlay for Mobile */}
+      <div 
+        className={`cart-drawer-overlay ${showMobileCart ? 'active' : ''}`}
+        onClick={() => setShowMobileCart(false)}
+      />
+
+      <div className={`right-panel ${showMobileCart ? 'active' : ''}`}>
+        {/* Close button for mobile drawer */}
+        <button 
+          className="drawer-close-btn"
+          onClick={() => setShowMobileCart(false)}
+        >
+          ✕
+        </button>
         <div className="cart-header">
           <h2 className="cart-title">{t('shoppingCart')}</h2>
           <div className="cart-count">{cart.length} {t('items')}</div>
