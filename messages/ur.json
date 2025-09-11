@@ -92,6 +92,11 @@
     "categoryAdded": "قسم کامیابی سے شامل ہوئی",
     "categoryUpdated": "قسم کامیابی سے اپ ڈیٹ ہوئی",
     "categoryDeleted": "قسم کامیابی سے حذف ہوئی",
+    "productAlreadyExists": "یہ مصنوع پہلے سے موجود ہے! آپ ایک ہی مصنوع کو مختلف سائز میں شامل نہیں کر سکتے۔",
+    "categoryAlreadyExists": "یہ قسم پہلے سے موجود ہے!",
+    "enterUniqueProductName": "منفرد مصنوع کا نام درج کریں",
+    "cannotDeleteProductWithHistory": "فروخت یا واپسی کی تاریخ والی مصنوع کو حذف نہیں کیا جا سکتا",
+    "failedToDeleteProduct": "مصنوع حذف کرنے میں ناکام",
     "confirmDeleteProduct": "کیا آپ واقعی اس مصنوع کو حذف کرنا چاہتے ہیں؟",
     "confirmDeleteCategory": "کیا آپ واقعی اس قسم کو حذف کرنا چاہتے ہیں؟"
   },

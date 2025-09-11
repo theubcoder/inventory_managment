@@ -761,6 +761,19 @@ export default function LoanManagement() {
           .filters {
             flex-direction: column;
           }
+          
+          .filter-tabs {
+            flex-wrap: wrap;
+            gap: 5px;
+          }
+          
+          .filter-tab {
+            padding: 8px 12px;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: auto;
+            flex: 0 0 auto;
+          }
 
           .stats-grid {
             grid-template-columns: 1fr;
@@ -772,6 +785,13 @@ export default function LoanManagement() {
 
           .payment-methods {
             grid-template-columns: 1fr;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .filter-tab {
+            padding: 6px 10px;
+            font-size: 11px;
           }
         }
       `}</style>

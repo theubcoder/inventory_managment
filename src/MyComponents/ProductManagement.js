@@ -37,6 +37,8 @@ export default function ProductManagement() {
     name: '',
     description: ''
   });
+  const [productNameError, setProductNameError] = useState('');
+  const [categoryNameError, setCategoryNameError] = useState('');
 
   // Fetch categories on mount
   useEffect(() => {
@@ -90,10 +92,30 @@ export default function ProductManagement() {
   };
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Real-time validation for product name
+    if (name === 'name') {
+      const trimmedValue = value.trim();
+      if (trimmedValue) {
+        const existingProduct = products.find(p => 
+          p.name.toLowerCase() === trimmedValue.toLowerCase() && 
+          p.id !== editingProduct?.id
+        );
+        
+        if (existingProduct) {
+          setProductNameError(t('productAlreadyExists') || 'Product already exists!');
+        } else {
+          setProductNameError('');
+        }
+      } else {
+        setProductNameError('');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -101,6 +123,19 @@ export default function ProductManagement() {
     setLoading(true);
     
     try {
+      // Check for duplicate product name (case-insensitive)
+      const productName = formData.name.trim().toLowerCase();
+      const existingProduct = products.find(p => 
+        p.name.toLowerCase() === productName && 
+        p.id !== editingProduct?.id
+      );
+      
+      if (existingProduct) {
+        showError(t('productAlreadyExists') || `Product "${formData.name}" already exists! You cannot add the same product in different sizes.`);
+        setLoading(false);
+        return;
+      }
+      
       // Calculate total quantity based on input method
       let totalQuantity = parseInt(formData.quantity);
       if (inputMethod === 'box') {
@@ -156,6 +191,7 @@ export default function ProductManagement() {
       setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', unitsPerBox: '10', description: '', barcode: '' });
       setBoxInput({ boxes: '', units: '' });
       setInputMethod('quantity');
+      setProductNameError('');
     } catch (error) {
       console.error('Error saving product:', error);
       showError('Error saving product: ' + error.message);
@@ -222,10 +258,30 @@ export default function ProductManagement() {
 
   // Category management functions
   const handleCategoryInputChange = (e) => {
+    const { name, value } = e.target;
     setCategoryFormData({
       ...categoryFormData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Real-time validation for category name
+    if (name === 'name') {
+      const trimmedValue = value.trim();
+      if (trimmedValue) {
+        const existingCategory = categories.find(c => 
+          c.name.toLowerCase() === trimmedValue.toLowerCase() && 
+          c.id !== editingCategory?.id
+        );
+        
+        if (existingCategory) {
+          setCategoryNameError(t('categoryAlreadyExists') || 'Category already exists!');
+        } else {
+          setCategoryNameError('');
+        }
+      } else {
+        setCategoryNameError('');
+      }
+    }
   };
 
   const handleCategorySubmit = async (e) => {
@@ -233,6 +289,19 @@ export default function ProductManagement() {
     setLoading(true);
     
     try {
+      // Check for duplicate category name (case-insensitive)
+      const categoryName = categoryFormData.name.trim().toLowerCase();
+      const existingCategory = categories.find(c => 
+        c.name.toLowerCase() === categoryName && 
+        c.id !== editingCategory?.id
+      );
+      
+      if (existingCategory) {
+        showError(t('categoryAlreadyExists') || `Category "${categoryFormData.name}" already exists!`);
+        setLoading(false);
+        return;
+      }
+      
       if (editingCategory) {
         // Update existing category
         const response = await fetch('/api/categories', {
@@ -264,6 +333,7 @@ export default function ProductManagement() {
       
       setShowCategoryModal(false);
       setCategoryFormData({ name: '', description: '' });
+      setCategoryNameError('');
     } catch (error) {
       console.error('Error saving category:', error);
       showError('Error saving category: ' + error.message);
@@ -922,11 +992,15 @@ export default function ProductManagement() {
                 <input
                   type="text"
                   name="name"
-                  className="form-input"
+                  className={`form-input ${productNameError ? 'border-red-500' : ''}`}
                   value={formData.name || ''}
                   onChange={handleInputChange}
+                  placeholder={t('enterUniqueProductName') || 'Enter unique product name'}
                   required
                 />
+                {productNameError && (
+                  <p className="text-red-500 text-sm mt-1">{productNameError}</p>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">{t('category')}</label>
@@ -1137,7 +1211,11 @@ export default function ProductManagement() {
                 />
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-btn">
+                <button 
+                  type="submit" 
+                  className={`submit-btn ${productNameError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!!productNameError || loading}
+                >
                   {editingProduct ? t('updateProduct') : t('addProduct')}
                 </button>
                 <button type="button" className="cancel-btn" onClick={() => {
@@ -1174,12 +1252,15 @@ export default function ProductManagement() {
                 <input
                   type="text"
                   name="name"
-                  className="form-input"
+                  className={`form-input ${categoryNameError ? 'border-red-500' : ''}`}
                   value={categoryFormData.name || ''}
                   onChange={handleCategoryInputChange}
                   placeholder={t('enterCategoryName')}
                   required
                 />
+                {categoryNameError && (
+                  <p className="text-red-500 text-sm mt-1">{categoryNameError}</p>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">{t('description')}</label>
@@ -1192,7 +1273,11 @@ export default function ProductManagement() {
                 />
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-btn" disabled={loading}>
+                <button 
+                  type="submit" 
+                  className={`submit-btn ${categoryNameError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!!categoryNameError || loading}
+                >
                   {loading ? t('saving') : (editingCategory ? t('updateCategory') : t('addCategory'))}
                 </button>
                 <button type="button" className="cancel-btn" onClick={() => {

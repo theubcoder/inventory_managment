@@ -233,7 +233,7 @@ export default function SalesPOS() {
       <style jsx>{`
         .sales-pos {
           display: flex;
-          height: 100vh;
+          height: calc(100vh - 64px);
           background: #f8f9fa;
           margin: 0;
           overflow: hidden;
@@ -244,7 +244,7 @@ export default function SalesPOS() {
           padding: 20px;
           display: flex;
           flex-direction: column;
-          height: 100vh;
+          height: calc(100vh - 64px);
           background: #f8f9fa;
           overflow: hidden;
         }
@@ -255,6 +255,7 @@ export default function SalesPOS() {
           box-shadow: -5px 0 20px rgba(0, 0, 0, 0.05);
           display: flex;
           flex-direction: column;
+          position: relative;
         }
 
         .search-section {
@@ -297,6 +298,7 @@ export default function SalesPOS() {
           padding-bottom: 10px;
           align-content: start;
           min-height: 0;
+          -webkit-overflow-scrolling: touch;
         }
 
         .product-card {
@@ -304,13 +306,13 @@ export default function SalesPOS() {
           border-radius: 15px;
           padding: 15px;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-          cursor: pointer;
           transition: all 0.3s ease;
           position: relative;
+          display: flex;
+          flex-direction: column;
         }
 
         .product-card:hover {
-          transform: translateY(-3px);
           box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
 
@@ -393,16 +395,17 @@ export default function SalesPOS() {
           background: linear-gradient(135deg, #667eea, #764ba2);
           color: white;
           flex-shrink: 0;
+          position: relative;
         }
 
         .cart-title {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
-          margin-bottom: 5px;
+          margin-bottom: 2px;
         }
 
         .cart-count {
-          font-size: 14px;
+          font-size: 13px;
           opacity: 0.9;
         }
 
@@ -412,7 +415,6 @@ export default function SalesPOS() {
           padding: 20px;
           padding-bottom: 10px;
           min-height: 0;
-          max-height: calc(100vh - 280px);
         }
 
         .cart-item {
@@ -493,8 +495,8 @@ export default function SalesPOS() {
           padding: 20px;
           background: white;
           border-top: 1px solid #e5e7eb;
-          margin-top: auto;
           flex-shrink: 0;
+          min-height: fit-content;
         }
 
         .total-section {
@@ -789,7 +791,7 @@ export default function SalesPOS() {
         @media (max-width: 768px) {
           .sales-pos {
             flex-direction: column;
-            height: 100vh;
+            height: calc(100vh - 64px);
             position: relative;
             background: #f8f9fa;
             overflow: hidden;
@@ -797,39 +799,40 @@ export default function SalesPOS() {
 
           .left-panel {
             padding: 15px;
-            height: 100vh;
+            height: calc(100vh - 64px);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding-bottom: 80px; /* Space for mobile cart button */
             background: #f8f9fa;
           }
 
           /* Removed old right-panel mobile styles as they're now in cart drawer section */
 
           .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 10px;
             flex: 1;
             overflow-y: auto;
             min-height: 0;
-            padding-bottom: 10px;
+            padding-bottom: 70px;
+            -webkit-overflow-scrolling: touch;
           }
 
           .product-card {
-            padding: 12px;
+            padding: 10px;
           }
 
           .product-name {
-            font-size: 13px;
+            font-size: 12px;
+            line-height: 1.2;
           }
 
           .product-price {
-            font-size: 14px;
+            font-size: 13px;
           }
 
           .product-stock {
-            font-size: 11px;
+            font-size: 10px;
           }
 
           .search-section {
@@ -842,21 +845,15 @@ export default function SalesPOS() {
           }
 
           .cart-header {
-            padding: 15px 20px;
+            padding: 50px 15px 12px 15px; /* Space for close button */
             flex-shrink: 0;
+            min-height: fit-content;
           }
 
-          .cart-items {
-            max-height: calc(100vh - 320px);
-            min-height: 200px;
-          }
+          /* Cart items height handled in drawer specific styles */
 
           .cart-footer {
-            padding: 15px 20px;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
           }
 
           .payment-methods {
@@ -890,6 +887,14 @@ export default function SalesPOS() {
 
           .customer-inputs input {
             width: 100%;
+          }
+        }
+
+        /* Mobile View - Most phones */
+        @media (max-width: 640px) {
+          .products-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px;
           }
         }
 
@@ -958,8 +963,23 @@ export default function SalesPOS() {
           }
 
           .checkout-btn {
-            padding: 12px;
+            padding: 10px;
             font-size: 14px;
+          }
+          
+          .total-section {
+            margin-bottom: 8px;
+          }
+          
+          .total-row {
+            margin-bottom: 6px;
+            font-size: 12px;
+          }
+          
+          .grand-total {
+            font-size: 14px;
+            padding-top: 6px;
+            margin-top: 6px;
           }
 
           .receipt-modal {
@@ -998,13 +1018,13 @@ export default function SalesPOS() {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             font-size: 24px;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             z-index: 999;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -1053,11 +1073,12 @@ export default function SalesPOS() {
           .right-panel {
             position: fixed;
             right: -100%;
-            top: 0;
+            top: 64px;
             bottom: 0;
-            width: 85%;
-            max-width: 400px;
-            height: 100vh;
+            width: 90%;
+            max-width: 380px;
+            height: calc(100vh - 64px);
+            height: calc(100dvh - 64px); /* Dynamic viewport height for mobile minus header */
             background: white;
             box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
             z-index: 1001;
@@ -1067,10 +1088,33 @@ export default function SalesPOS() {
             overflow: hidden;
           }
 
+          .right-panel .cart-header {
+            flex-shrink: 0;
+          }
+
+          .right-panel .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: 12px;
+          }
+
+          .right-panel .cart-footer {
+            flex-shrink: 0;
+            background: white;
+            border-top: 2px solid #e5e7eb;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            padding: 12px 15px;
+            min-height: fit-content;
+            max-height: 40vh;
+          }
+
           .right-panel.active {
             right: 0;
             display: flex;
             flex-direction: column;
+            height: calc(100vh - 64px);
+            height: calc(100dvh - 64px);
           }
 
         }
@@ -1084,17 +1128,20 @@ export default function SalesPOS() {
           .drawer-close-btn {
             display: flex;
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: #f3f4f6;
-            border: none;
-            width: 32px;
-            height: 32px;
+            top: 12px;
+            left: 12px;
+            background: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            color: #667eea;
+            font-weight: bold;
           }
 
           .drawer-close-btn:hover {
@@ -1119,12 +1166,11 @@ export default function SalesPOS() {
           {filteredProducts.map(product => (
             <div 
               key={product.id} 
-              className={`product-card ${product.stock === 0 ? 'out-of-stock' : ''}`} 
-              onClick={() => addToCart(product)}>
+              className={`product-card ${product.stock === 0 ? 'out-of-stock' : ''}`}>
               {product.stock === 0 && (
                 <div className="out-of-stock-badge">{t('outOfStock')}</div>
               )}
-              <div className="product-image">
+              <div className="product-image" style={{ cursor: 'pointer' }} onClick={() => !cart.find(item => item.id === product.id) && addToCart(product)}>
                 {product.category?.name?.toLowerCase() === 'electronics' && '💻'}
                 {product.category?.name?.toLowerCase() === 'clothing' && '👕'}
                 {product.category?.name?.toLowerCase() === 'food' && '🍚'}
@@ -1132,7 +1178,7 @@ export default function SalesPOS() {
                 {product.category?.name?.toLowerCase() === 'sports' && '⚽'}
                 {!product.category && '📦'}
               </div>
-              <div className="product-info">
+              <div className="product-info" style={{ flex: 1 }}>
                 <div className="product-name">{product.name}</div>
                 <div className="product-price">PKR {product.price.toLocaleString()}</div>
                 <div className={`product-stock ${
@@ -1145,6 +1191,97 @@ export default function SalesPOS() {
                   </span>
                 </div>
               </div>
+              {(() => {
+                const cartItem = cart.find(item => item.id === product.id);
+                return cartItem ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    marginTop: '10px',
+                    padding: '8px',
+                    background: '#f3f4f6',
+                    borderRadius: '8px'
+                  }}>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateQuantity(product.id, cartItem.quantity - 1);
+                      }}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'white',
+                        color: '#667eea',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      -
+                    </button>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      minWidth: '30px',
+                      textAlign: 'center'
+                    }}>
+                      {cartItem.quantity}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateQuantity(product.id, cartItem.quantity + 1);
+                      }}
+                      disabled={cartItem.quantity >= product.stock}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: cartItem.quantity >= product.stock ? '#e5e7eb' : 'white',
+                        color: cartItem.quantity >= product.stock ? '#9ca3af' : '#667eea',
+                        fontSize: '16px',
+                        cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        opacity: cartItem.quantity >= product.stock ? 0.5 : 1
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => addToCart(product)}
+                    disabled={product.stock === 0}
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px',
+                      background: product.stock === 0 ? '#e5e7eb' : 'linear-gradient(135deg, #667eea, #764ba2)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
+                      opacity: product.stock === 0 ? 0.5 : 1,
+                      transition: 'all 0.3s ease',
+                      width: '100%'
+                    }}
+                  >
+                    {product.stock === 0 ? t('outOfStock') : t('addToCart') || 'Add to Cart'}
+                  </button>
+                );
+              })()}
             </div>
           ))}
         </div>
