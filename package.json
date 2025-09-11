@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "postinstall": "prisma generate || echo 'Prisma generate failed - please run manually'"
+    "postinstall": "prisma generate || echo 'Prisma generate failed - please run manually' && npm rebuild lightningcss || true"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
