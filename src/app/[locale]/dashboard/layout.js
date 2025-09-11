@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children, params }) {
 
 
   return (
-    <div dir={dir}>
+    <div dir={dir} className={locale === 'ur' ? 'locale-ur' : ''}>
       <NextIntlClientProvider>
         <SidebarProvider>
           <AppSidebar />

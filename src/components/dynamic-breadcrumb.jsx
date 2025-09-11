@@ -1,21 +1,28 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useTranslations, useLocale } from 'next-intl'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-
-const routeMap = {
-  '/dashboard': { title: 'Dashboard', parent: null },
-  '/dashboard/allProducts': { title: 'All Products', parent: '/dashboard' },
-  '/dashboard/sales': { title: 'Sales', parent: '/dashboard' },
-  '/dashboard/loans': { title: 'Loans History', parent: '/dashboard' },
-  '/dashboard/ograi': { title: 'Ograi Pending', parent: '/dashboard' },
-  '/dashboard/ograi/cleared': { title: 'Ograi Cleared', parent: '/dashboard/ograi' },
-  '/dashboard/return': { title: 'Product Returns', parent: '/dashboard' },
-  '/dashboard/reports': { title: 'Reports', parent: '/dashboard' },
-}
 
 export function DynamicBreadcrumb() {
   const pathname = usePathname()
+  const t = useTranslations('Navigation')
+  const locale = useLocale()
+  const isRTL = locale === 'ur'
+  
+  // Remove locale from pathname for routing
+  const cleanPathname = pathname.replace(/^\/(en|ur)/, '')
+  
+  const routeMap = {
+    '/dashboard': { title: t('dashboard'), parent: null },
+    '/dashboard/allProducts': { title: t('allProducts'), parent: '/dashboard' },
+    '/dashboard/sales': { title: t('sales'), parent: '/dashboard' },
+    '/dashboard/loans': { title: t('loansHistory'), parent: '/dashboard' },
+    '/dashboard/ograi': { title: t('ograiPending'), parent: '/dashboard' },
+    '/dashboard/ograi/cleared': { title: t('ograiCleared'), parent: '/dashboard/ograi' },
+    '/dashboard/return': { title: t('productReturns'), parent: '/dashboard' },
+    '/dashboard/reports': { title: t('reports'), parent: '/dashboard' },
+  }
   
   const buildBreadcrumbs = (currentPath) => {
     const breadcrumbs = []
@@ -23,7 +30,7 @@ export function DynamicBreadcrumb() {
     
     while (path && routeMap[path]) {
       breadcrumbs.unshift({
-        path,
+        path: `/${locale}${path}`,
         title: routeMap[path].title,
         isLast: path === currentPath
       })
@@ -33,14 +40,14 @@ export function DynamicBreadcrumb() {
     return breadcrumbs
   }
   
-  const breadcrumbs = buildBreadcrumbs(pathname)
+  const breadcrumbs = buildBreadcrumbs(cleanPathname)
   
   if (breadcrumbs.length === 0) {
     return (
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            <BreadcrumbPage>{t('dashboard')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

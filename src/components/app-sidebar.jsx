@@ -12,7 +12,6 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
-  Utensils,
   Home,
   Package,
   ShoppingCart,
@@ -36,13 +35,9 @@ import {
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/contexts/LanguageContext"
 import LocaleSwitcher from "@/LocaleSwitcher"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 // This is sample data.
-
-
- 
-
 const data = {
   user: {
     name: "Admin",
@@ -52,7 +47,7 @@ const data = {
   teams: [
     {
       name: "Naeem Ullah",
-      logo: Utensils,
+      logo: "/images/Logo.png",
       plan: "Bartan Store",
     },
   ],
@@ -143,7 +138,6 @@ const data = {
       ],
     },
   ],
-
 }
 
 export function AppSidebar({

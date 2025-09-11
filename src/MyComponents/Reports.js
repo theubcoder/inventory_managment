@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { CalendarIcon, ChartBarIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
 
 export default function Reports() {
   const t = useTranslations('Reports');
   const tCommon = useTranslations('Common');
+  const locale = useLocale();
+  const isRTL = locale === 'ur';
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [availableDates, setAvailableDates] = useState([]);
@@ -84,9 +86,9 @@ export default function Reports() {
 
   if (loading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className={`p-6 bg-gray-50 min-h-screen ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading reports...</div>
+          <div className="text-lg">{t('loadingReports')}</div>
         </div>
       </div>
     );
@@ -94,9 +96,9 @@ export default function Reports() {
 
   if (!data) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className={`p-6 bg-gray-50 min-h-screen ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-600">Failed to load report data</div>
+          <div className="text-lg text-red-600">{t('failedToLoad')}</div>
         </div>
       </div>
     );
@@ -104,31 +106,31 @@ export default function Reports() {
 
   const summaryCards = [
     {
-      title: 'Total Sales',
+      title: t('totalSales'),
       value: data.summary.totalSales,
       icon: ShoppingCartIcon,
       bgColor: 'bg-blue-500',
     },
     {
-      title: `Revenue (${data.dateRange})`,
+      title: `${t('revenue')} (${data.dateRange})`,
       value: `PKR ${data.summary.totalRevenue.toLocaleString()}`,
       icon: ChartBarIcon,
       bgColor: 'bg-green-500',
     },
     {
-      title: `Profit (${data.dateRange})`,
+      title: `${t('profit')} (${data.dateRange})`,
       value: `PKR ${data.summary.totalProfit.toLocaleString()}`,
       icon: BanknotesIcon,
       bgColor: 'bg-emerald-500',
     },
     {
-      title: 'Profit Margin',
+      title: t('profitMargin'),
       value: `${data.summary.profitMargin}%`,
       icon: ArrowTrendingUpIcon,
       bgColor: 'bg-orange-500',
     },
     {
-      title: 'Net Profit',
+      title: t('netProfit'),
       value: `PKR ${data.summary.netProfit.toLocaleString()}`,
       icon: BanknotesIcon,
       bgColor: 'bg-purple-500',
@@ -136,16 +138,16 @@ export default function Reports() {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className={`p-6 bg-gray-50 min-h-screen ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Reports</h1>
-            <p className="text-gray-600 mt-2">Comprehensive business analytics and profit reports</p>
+            <h1 className="text-3xl font-bold text-gray-800">{t('title')}</h1>
+            <p className="text-gray-600 mt-2">{t('subtitle')}</p>
             {availableDates.length > 0 && (
               <div className="mt-2 flex items-center space-x-2 text-sm">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  📅 {availableDates.length} days with data available
+                  📅 {t('daysWithData', {count: availableDates.length})}
                 </span>
                 <span className="text-gray-500">
                   ({getMinDate()} to {getMaxDate()})
@@ -154,10 +156,10 @@ export default function Reports() {
             )}
           </div>
           
-          <div className="mt-4 lg:mt-0 flex items-center space-x-4 bg-white p-4 rounded-lg shadow">
+          <div className={`mt-4 lg:mt-0 flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 bg-white p-4 rounded-lg shadow`}>
             <CalendarIcon className="w-5 h-5 text-gray-500" />
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">From:</label>
+              <label className="text-sm font-medium text-gray-700">{t('from')}:</label>
               <input
                 type="date"
                 value={dateRange.startDate}
@@ -174,7 +176,7 @@ export default function Reports() {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">To:</label>
+              <label className="text-sm font-medium text-gray-700">{t('to')}:</label>
               <input
                 type="date"
                 value={dateRange.endDate}
@@ -195,7 +197,7 @@ export default function Reports() {
               disabled={!dateRange.startDate || !dateRange.endDate || loading}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
             >
-              {loading ? 'Loading...' : 'Apply Filter'}
+              {loading ? t('loading') : t('applyFilter')}
             </button>
             <button
               onClick={() => {
@@ -204,7 +206,7 @@ export default function Reports() {
               }}
               className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium"
             >
-              Clear
+              {t('clear')}
             </button>
           </div>
         </div>
@@ -228,15 +230,15 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Selling Products</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('topSellingProducts')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Product</th>
-                  <th className="pb-3 font-medium text-gray-600">Quantity Sold</th>
-                  <th className="pb-3 font-medium text-gray-600">Revenue</th>
-                  <th className="pb-3 font-medium text-gray-600">Profit</th>
+                <tr className={`${isRTL ? 'text-right' : 'text-left'} border-b`}>
+                  <th className="pb-3 font-medium text-gray-600">{t('product')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('quantitySold')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('revenue')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('profit')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,15 +256,15 @@ export default function Reports() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Customers</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('topCustomers')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Customer</th>
-                  <th className="pb-3 font-medium text-gray-600">Sales</th>
-                  <th className="pb-3 font-medium text-gray-600">Revenue</th>
-                  <th className="pb-3 font-medium text-gray-600">Profit</th>
+                <tr className={`${isRTL ? 'text-right' : 'text-left'} border-b`}>
+                  <th className="pb-3 font-medium text-gray-600">{t('customer')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('sales')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('revenue')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('profit')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -282,13 +284,13 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Expenses by Category</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('expensesByCategory')}</h2>
           <div className="space-y-4">
             {data.expenseCategories.map((category, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-800">{category.category}</p>
-                  <p className="text-sm text-gray-600">{category.count} expenses</p>
+                  <p className="text-sm text-gray-600">{category.count} {t('expenses')}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-red-600">PKR {category.amount.toLocaleString()}</p>
@@ -299,16 +301,16 @@ export default function Reports() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Sales</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('recentSales')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Date</th>
-                  <th className="pb-3 font-medium text-gray-600">Customer</th>
-                  <th className="pb-3 font-medium text-gray-600">Amount</th>
-                  <th className="pb-3 font-medium text-gray-600">Profit</th>
-                  <th className="pb-3 font-medium text-gray-600">Status</th>
+                <tr className={`${isRTL ? 'text-right' : 'text-left'} border-b`}>
+                  <th className="pb-3 font-medium text-gray-600">{t('date')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('customer')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('amount')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('profit')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -336,15 +338,15 @@ export default function Reports() {
 
       {data.salesTrend.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Sales Trend</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('salesTrend')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left border-b">
-                  <th className="pb-3 font-medium text-gray-600">Date</th>
-                  <th className="pb-3 font-medium text-gray-600">Sales Count</th>
-                  <th className="pb-3 font-medium text-gray-600">Revenue</th>
-                  <th className="pb-3 font-medium text-gray-600">Profit</th>
+                <tr className={`${isRTL ? 'text-right' : 'text-left'} border-b`}>
+                  <th className="pb-3 font-medium text-gray-600">{t('date')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('salesCount')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('revenue')}</th>
+                  <th className="pb-3 font-medium text-gray-600">{t('profit')}</th>
                 </tr>
               </thead>
               <tbody>

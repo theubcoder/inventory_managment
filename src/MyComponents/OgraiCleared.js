@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useNotification, useConfirm } from '../components/NotificationSystem';
 
 export default function OgraiCleared() {
   const t = useTranslations('Ograi');
   const tCommon = useTranslations('Common');
+  const locale = useLocale();
+  const isRTL = locale === 'ur';
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
   const { confirm, ConfirmComponent } = useConfirm();
   const [suppliers, setSuppliers] = useState([]);
@@ -66,10 +68,10 @@ export default function OgraiCleared() {
 
   const handleDeleteTransaction = async (transactionId) => {
     const confirmed = await confirm({
-      title: 'Delete Transaction',
-      message: 'Are you sure you want to delete this completed transaction?',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      title: t('deleteTransaction'),
+      message: t('confirmDeleteTransaction'),
+      confirmText: t('delete'),
+      cancelText: t('cancel'),
       type: 'delete'
     });
 
@@ -106,7 +108,7 @@ export default function OgraiCleared() {
   };
 
   return (
-    <div className="ograi-container">
+    <div className="ograi-container" dir={isRTL ? 'rtl' : 'ltr'}>
       <style jsx>{`
         .ograi-container {
           padding: 30px;
@@ -463,8 +465,8 @@ export default function OgraiCleared() {
       `}</style>
 
       <div className="page-header">
-        <h1 className="page-title">Cleared Ograi Transactions</h1>
-        <p className="page-subtitle">Completed supplier payments and transactions</p>
+        <h1 className="page-title">{t('clearedOgraiTransactions')}</h1>
+        <p className="page-subtitle">{t('completedTransactions')}</p>
       </div>
 
       <div className="action-bar">
@@ -473,7 +475,7 @@ export default function OgraiCleared() {
           <input
             type="text"
             className="search-input"
-            placeholder="Search by supplier"
+            placeholder={t('searchBySupplier')}
             onChange={(e) => {
               const searchTerm = e.target.value.toLowerCase();
               // Filter logic here
@@ -481,26 +483,26 @@ export default function OgraiCleared() {
           />
         </div>
         <div style={{ color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
-          ✅ All transactions completed
+          ✅ {t('allTransactionsCompleted')}
         </div>
       </div>
 
       <div className="summary-cards">
         <div className="summary-card">
           <div className="summary-icon icon-completed">✅</div>
-          <div className="summary-label">Completed Transactions</div>
+          <div className="summary-label">{t('completedTransactions')}</div>
           <div className="summary-value">{transactions.length}</div>
         </div>
         <div className="summary-card">
           <div className="summary-icon icon-paid">💰</div>
-          <div className="summary-label">Total Completed Amount</div>
+          <div className="summary-label">{t('totalCompletedAmount')}</div>
           <div className="summary-value">
             PKR {transactions.reduce((sum, t) => sum + t.totalAmount, 0).toLocaleString()}
           </div>
         </div>
         <div className="summary-card">
           <div className="summary-icon icon-paid">✅</div>
-          <div className="summary-label">Total Paid</div>
+          <div className="summary-label">{t('totalPaid')}</div>
           <div className="summary-value">
             PKR {transactions.reduce((sum, t) => sum + t.amountPaid, 0).toLocaleString()}
           </div>
@@ -509,21 +511,21 @@ export default function OgraiCleared() {
 
 
       <div className="transactions-table">
-        <h2 className="section-title">Cleared Transaction History</h2>
+        <h2 className="section-title">{t('clearedTransactionHistory')}</h2>
         {transactions.length > 0 ? (
           <div className="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Supplier</th>
-                  <th>Product</th>
-                  <th>Quantity</th>
-                  <th>Total Amount</th>
-                  <th>Amount Paid</th>
-                  <th>Transport Fee</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>{t('date')}</th>
+                  <th>{t('supplier')}</th>
+                  <th>{t('product')}</th>
+                  <th>{t('quantity')}</th>
+                  <th>{t('totalAmount')}</th>
+                  <th>{t('amountPaid')}</th>
+                  <th>{t('transportFee')}</th>
+                  <th>{t('status')}</th>
+                  <th>{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -540,7 +542,7 @@ export default function OgraiCleared() {
                     <td>PKR {(transaction.transportFee || 0).toLocaleString()}</td>
                     <td>
                       <span className="status-badge status-completed">
-                        ✅ Completed
+                        ✅ {t('complete')}
                       </span>
                     </td>
                     <td>
@@ -558,7 +560,7 @@ export default function OgraiCleared() {
                             cursor: 'pointer'
                           }}
                         >
-                          📜 History
+                          📜 {t('history')}
                         </button>
                         <button
                           className="delete-btn"
@@ -573,7 +575,7 @@ export default function OgraiCleared() {
                             cursor: 'pointer'
                           }}
                         >
-                          🗑️ Delete
+                          🗑️ {t('delete')}
                         </button>
                       </div>
                     </td>
@@ -585,8 +587,8 @@ export default function OgraiCleared() {
         ) : (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
-            <div className="empty-title">No Cleared Transactions Yet</div>
-            <div className="empty-description">Completed transactions will appear here</div>
+            <div className="empty-title">{t('noClearedTransactionsYet')}</div>
+            <div className="empty-description">{t('viewCompletedOgraiTransactions')}</div>
           </div>
         )}
       </div>
@@ -597,36 +599,36 @@ export default function OgraiCleared() {
         }}>
           <div className="modal-content">
             <div className="modal-header">
-              <h2 className="modal-title">Payment History</h2>
+              <h2 className="modal-title">{t('paymentHistory')}</h2>
               <button className="close-btn" onClick={() => setShowPaymentHistory(false)}>✕</button>
             </div>
 
             <div style={{ marginBottom: '20px', padding: '15px', background: '#f9fafb', borderRadius: '10px' }}>
-              <h3 style={{ fontSize: '16px', marginBottom: '10px', color: '#374151' }}>Transaction Details</h3>
+              <h3 style={{ fontSize: '16px', marginBottom: '10px', color: '#374151' }}>{t('transactionDetails')}</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Supplier: </span>
+                  <span style={{ color: '#6b7280' }}>{t('supplier')}: </span>
                   <strong>{selectedTransaction.supplierName}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Product: </span>
+                  <span style={{ color: '#6b7280' }}>{t('product')}: </span>
                   <strong>{selectedTransaction.productName}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Total Amount: </span>
+                  <span style={{ color: '#6b7280' }}>{t('totalAmount')}: </span>
                   <strong>PKR {parseFloat(selectedTransaction.totalAmount).toLocaleString()}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Total Paid: </span>
+                  <span style={{ color: '#6b7280' }}>{t('totalPaid')}: </span>
                   <strong style={{ color: '#10b981' }}>PKR {parseFloat(selectedTransaction.amountPaid).toLocaleString()}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Status: </span>
-                  <strong style={{ color: '#10b981' }}>✅ Fully Paid</strong>
+                  <span style={{ color: '#6b7280' }}>{t('status')}: </span>
+                  <strong style={{ color: '#10b981' }}>✅ {t('fullyPaid')}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#6b7280' }}>Transport: </span>
-                  <strong style={{ color: '#10b981' }}>✅ Completed</strong>
+                  <span style={{ color: '#6b7280' }}>{t('transport')}: </span>
+                  <strong style={{ color: '#10b981' }}>✅ {t('complete')}</strong>
                 </div>
               </div>
             </div>
@@ -636,20 +638,20 @@ export default function OgraiCleared() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Payment #</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Date</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Product Payment</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Transport Payment</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Total Payment</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Method</th>
-                      <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>Notes</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('paymentNumber')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('date')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('productPayment')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('transportPayment')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('totalPayment')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('method')}</th>
+                      <th style={{ padding: '10px', textAlign: isRTL ? 'right' : 'left', borderBottom: '2px solid #e5e7eb', background: '#f9fafb' }}>{t('notes')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paymentHistory.map((payment, index) => (
                       <tr key={payment.id}>
                         <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
-                          Installment {paymentHistory.length - index}
+                          {t('installment')} {paymentHistory.length - index}
                         </td>
                         <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
                           {new Date(payment.paymentDate).toLocaleDateString()}
@@ -677,14 +679,14 @@ export default function OgraiCleared() {
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">💳</div>
-                <div className="empty-title">No Payment History</div>
-                <div className="empty-description">Payment history not available</div>
+                <div className="empty-title">{t('noPaymentHistory')}</div>
+                <div className="empty-description">{t('noPaymentsMade')}</div>
               </div>
             )}
 
             <div className="form-actions" style={{ marginTop: '20px' }}>
               <button type="button" className="btn btn-secondary" onClick={() => setShowPaymentHistory(false)}>
-                Close
+                {t('close')}
               </button>
             </div>
           </div>
