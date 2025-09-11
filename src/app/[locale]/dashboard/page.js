@@ -176,59 +176,72 @@ export default function Dashboard() {
             )}
           </div>
           
-          {/* Date Range Filter */}
-          <div className="mt-4 lg:mt-0 flex items-center space-x-4 bg-white p-4 rounded-lg shadow">
-            <CalendarIcon className="w-5 h-5 text-gray-500" />
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">{t('dateFilter.from')}</label>
-              <input
-                type="date"
-                value={dateRange.startDate}
-                min={getMinDate()}
-                max={getMaxDate()}
-                onChange={(e) => {
-                  const selectedDate = e.target.value
-                  if (!isDateDisabled(selectedDate)) {
-                    handleDateRangeChange('startDate', selectedDate)
-                  }
-                }}
-                className="border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer transition-all hover:border-blue-400"
-                title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
-              />
+          {/* Date Range Filter - Responsive */}
+          <div className="mt-4 lg:mt-0 bg-white p-4 rounded-lg shadow">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <CalendarIcon className="w-5 h-5 text-gray-500 hidden sm:block" />
+              
+              {/* Date Inputs Container */}
+              <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                {/* From Date */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('dateFilter.from')}</label>
+                  <input
+                    type="date"
+                    value={dateRange.startDate}
+                    min={getMinDate()}
+                    max={getMaxDate()}
+                    onChange={(e) => {
+                      const selectedDate = e.target.value
+                      if (!isDateDisabled(selectedDate)) {
+                        handleDateRangeChange('startDate', selectedDate)
+                      }
+                    }}
+                    className="border border-gray-300 rounded px-3 py-1.5 text-sm cursor-pointer transition-all hover:border-blue-400 w-full sm:w-auto"
+                    title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
+                  />
+                </div>
+                
+                {/* To Date */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('dateFilter.to')}</label>
+                  <input
+                    type="date"
+                    value={dateRange.endDate}
+                    min={getMinDate()}
+                    max={getMaxDate()}
+                    onChange={(e) => {
+                      const selectedDate = e.target.value
+                      if (!isDateDisabled(selectedDate)) {
+                        handleDateRangeChange('endDate', selectedDate)
+                      }
+                    }}
+                    className="border border-gray-300 rounded px-3 py-1.5 text-sm cursor-pointer transition-all hover:border-blue-400 w-full sm:w-auto"
+                    title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
+                  />
+                </div>
+              </div>
+              
+              {/* Buttons Container */}
+              <div className="flex gap-2 mt-3 sm:mt-0">
+                <button
+                  onClick={applyDateFilter}
+                  disabled={!dateRange.startDate || !dateRange.endDate || loading}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1.5 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105 flex-1 sm:flex-initial"
+                >
+                  {loading ? t('dateFilter.loading') : t('dateFilter.apply')}
+                </button>
+                <button
+                  onClick={() => {
+                    setDateRange({ startDate: '', endDate: '' })
+                    setTimeout(() => fetchDashboardData(), 100)
+                  }}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1.5 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105 flex-1 sm:flex-initial"
+                >
+                  {t('dateFilter.clear')}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">{t('dateFilter.to')}</label>
-              <input
-                type="date"
-                value={dateRange.endDate}
-                min={getMinDate()}
-                max={getMaxDate()}
-                onChange={(e) => {
-                  const selectedDate = e.target.value
-                  if (!isDateDisabled(selectedDate)) {
-                    handleDateRangeChange('endDate', selectedDate)
-                  }
-                }}
-                className="border border-gray-300 rounded px-3 py-1 text-sm cursor-pointer transition-all hover:border-blue-400"
-                title={availableDates.length > 0 ? `Available dates: ${getMinDate()} to ${getMaxDate()}` : 'Loading available dates...'}
-              />
-            </div>
-            <button
-              onClick={applyDateFilter}
-              disabled={!dateRange.startDate || !dateRange.endDate || loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
-            >
-              {loading ? t('dateFilter.loading') : t('dateFilter.apply')}
-            </button>
-            <button
-              onClick={() => {
-                setDateRange({ startDate: '', endDate: '' })
-                setTimeout(() => fetchDashboardData(), 100)
-              }}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm font-medium cursor-pointer transition-all hover:scale-105"
-            >
-              {t('dateFilter.clear')}
-            </button>
           </div>
         </div>
       </div>
