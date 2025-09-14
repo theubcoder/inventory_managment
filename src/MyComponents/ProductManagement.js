@@ -10,6 +10,7 @@ export default function ProductManagement() {
   const t = useTranslations('Products');
   const tCommon = useTranslations('Common');
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]); // Store all products for counts
   const [categories, setCategories] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -19,6 +20,7 @@ export default function ProductManagement() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('products');
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState('all');
   const [formData, setFormData] = useState({
     name: '',
     categoryId: '',
@@ -41,15 +43,16 @@ export default function ProductManagement() {
   const [productNameError, setProductNameError] = useState('');
   const [categoryNameError, setCategoryNameError] = useState('');
 
-  // Fetch categories on mount
+  // Fetch categories and all products on mount
   useEffect(() => {
     fetchCategories();
+    fetchAllProducts();
   }, []);
 
   // Fetch products when search or category changes
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategoryTab]);
 
   const fetchCategories = async () => {
     try {
@@ -68,13 +71,29 @@ export default function ProductManagement() {
     }
   };
 
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setAllProducts(data);
+      } else {
+        setAllProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching all products:', error);
+      setAllProducts([]);
+    }
+  };
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
       let url = '/api/products?';
       if (searchTerm) url += `search=${searchTerm}&`;
-      if (selectedCategory !== 'all') url += `category=${selectedCategory}`;
-      
+      // Use selectedCategoryTab for filtering
+      if (selectedCategoryTab !== 'all') url += `category=${selectedCategoryTab}`;
+
       const response = await fetch(url);
       const data = await response.json();
       // Ensure data is an array before setting
@@ -180,6 +199,7 @@ export default function ProductManagement() {
         
         if (response.ok) {
           await fetchProducts();
+          await fetchAllProducts();
           setEditingProduct(null);
           showSuccess(t('productUpdated'));
         } else {
@@ -192,9 +212,10 @@ export default function ProductManagement() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
           await fetchProducts();
+          await fetchAllProducts();
           showSuccess(t('productAdded'));
         } else {
           showError(t('failedToCreateProduct'));
@@ -264,6 +285,7 @@ export default function ProductManagement() {
         
         if (response.ok) {
           await fetchProducts();
+          await fetchAllProducts();
           showSuccess(t('productDeletedSuccessfully'));
         } else {
           const errorData = await response.json();
@@ -863,6 +885,70 @@ export default function ProductManagement() {
           white-space: nowrap;
         }
 
+        .category-tabs {
+          display: flex;
+          gap: 10px;
+          padding: 0 30px;
+          margin-bottom: 25px;
+          overflow-x: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e0 #f1f5f9;
+        }
+
+        .category-tabs::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        .category-tabs::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 3px;
+        }
+
+        .category-tabs::-webkit-scrollbar-thumb {
+          background-color: #cbd5e0;
+          border-radius: 3px;
+        }
+
+        .category-tab {
+          padding: 10px 20px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 500;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .category-tab:hover {
+          background: #f9fafb;
+          border-color: #9ca3af;
+        }
+
+        .category-tab.active {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          border-color: transparent;
+        }
+
+        .tab-count {
+          background: rgba(255, 255, 255, 0.2);
+          padding: 2px 8px;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .category-tab:not(.active) .tab-count {
+          background: #f3f4f6;
+          color: #374151;
+        }
+
         @media (max-width: 768px) {
           .product-management {
             padding: 20px;
@@ -911,6 +997,16 @@ export default function ProductManagement() {
             padding: 20px;
             max-width: 95%;
           }
+
+          .category-tabs {
+            padding: 0 20px;
+            margin-bottom: 20px;
+          }
+
+          .category-tab {
+            padding: 8px 16px;
+            font-size: 14px;
+          }
         }
 
         @media (max-width: 480px) {
@@ -942,6 +1038,20 @@ export default function ProductManagement() {
           .form-input, .form-select, .form-textarea {
             font-size: 14px;
             padding: 10px 12px;
+          }
+
+          .category-tabs {
+            padding: 0 15px;
+          }
+
+          .category-tab {
+            padding: 7px 12px;
+            font-size: 13px;
+          }
+
+          .tab-count {
+            padding: 1px 6px;
+            font-size: 11px;
           }
         }
       `}</style>
@@ -987,22 +1097,41 @@ export default function ProductManagement() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select 
-              className="category-filter"
-              value={selectedCategory || 'all'}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="all">{t('allCategories')}</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
           </div>
         )}
       </div>
 
       {activeTab === 'products' ? (
-        <div className="products-grid">
+        <>
+          {/* Category Tabs */}
+          <div className="category-tabs">
+            <button
+              className={`category-tab ${selectedCategoryTab === 'all' ? 'active' : ''}`}
+              onClick={() => setSelectedCategoryTab('all')}
+            >
+              {t('allCategories')}
+              <span className="tab-count">
+                {allProducts.length}
+              </span>
+            </button>
+            {categories.map(cat => {
+              const categoryProductCount = allProducts.filter(p => p.categoryId === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  className={`category-tab ${selectedCategoryTab === cat.name ? 'active' : ''}`}
+                  onClick={() => setSelectedCategoryTab(cat.name)}
+                >
+                  {cat.name}
+                  <span className="tab-count">
+                    {categoryProductCount}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="products-grid">
         {loading ? (
           <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px' }}>
             <div style={{ fontSize: '18px', color: '#6b7280' }}>{t('loadingProducts')}</div>
@@ -1051,7 +1180,8 @@ export default function ProductManagement() {
             </div>
           </div>
         ))}
-        </div>
+          </div>
+        </>
       ) : (
         <div className="category-grid">
           {categories.length === 0 ? (
