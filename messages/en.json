@@ -68,6 +68,7 @@
     "selectCategory": "Select Category",
     "pricePerUnit": "Price per Unit",
     "unitsPerBox": "Units per Box",
+    "profitCalculation": "Profit Calculation Method",
     "profitPerUnit": "Profit per Unit",
     "profitPerBox": "Profit per Box",
     "description": "Description",

@@ -33,6 +33,7 @@ export default function ProductManagement() {
   });
   const [inputMethod, setInputMethod] = useState('quantity'); // 'quantity' or 'box'
   const [boxInput, setBoxInput] = useState({ boxes: '', units: '' });
+  const [profitMethod, setProfitMethod] = useState('unit'); // 'unit' or 'box'
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     description: ''
@@ -145,15 +146,28 @@ export default function ProductManagement() {
         totalQuantity = (boxes * unitsPerBox) + extraUnits;
       }
       
+      // Calculate profit values based on selected method
+      let profitPerUnit = 0;
+      let profitPerBox = 0;
+      const unitsPerBox = parseInt(formData.unitsPerBox) || 10;
+
+      if (profitMethod === 'unit') {
+        profitPerUnit = parseFloat(formData.profitPerUnit) || 0;
+        profitPerBox = profitPerUnit * unitsPerBox;
+      } else {
+        profitPerBox = parseFloat(formData.profitPerBox) || 0;
+        profitPerUnit = profitPerBox / unitsPerBox;
+      }
+
       const data = {
         ...formData,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : null,
         price: parseFloat(formData.price),
         quantity: totalQuantity,
         minStock: parseInt(formData.minStock),
-        unitsPerBox: parseInt(formData.unitsPerBox) || 10,
-        profitPerUnit: parseFloat(formData.profitPerUnit) || 0,
-        profitPerBox: parseFloat(formData.profitPerBox) || 0
+        unitsPerBox: unitsPerBox,
+        profitPerUnit: profitPerUnit,
+        profitPerBox: profitPerBox
       };
 
       if (editingProduct) {
@@ -188,9 +202,10 @@ export default function ProductManagement() {
       }
       
       setShowAddModal(false);
-      setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', unitsPerBox: '10', description: '', barcode: '' });
+      setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', unitsPerBox: '10', profitPerUnit: '', profitPerBox: '', description: '', barcode: '' });
       setBoxInput({ boxes: '', units: '' });
       setInputMethod('quantity');
+      setProfitMethod('unit');
       setProductNameError('');
     } catch (error) {
       console.error('Error saving product:', error);
@@ -220,6 +235,15 @@ export default function ProductManagement() {
       boxes: Math.floor(product.quantity / unitsPerBox).toString(),
       units: (product.quantity % unitsPerBox).toString()
     });
+    // Set profit method based on existing data
+    // If profitPerBox exists and is different from calculated value, use box method
+    if (product.profitPerBox && product.profitPerUnit) {
+      const calculatedBoxProfit = product.profitPerUnit * unitsPerBox;
+      // If the box profit doesn't match the calculated value, it was set independently
+      setProfitMethod(Math.abs(product.profitPerBox - calculatedBoxProfit) > 0.01 ? 'box' : 'unit');
+    } else {
+      setProfitMethod('unit'); // Default to unit
+    }
     setShowAddModal(true);
   };
 
@@ -814,6 +838,31 @@ export default function ProductManagement() {
           gap: 10px;
         }
 
+        .radio-toggle-container {
+          display: flex;
+          gap: 15px;
+          margin-top: 10px;
+          flex-wrap: wrap;
+        }
+
+        .radio-option {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          min-width: 150px;
+        }
+
+        .radio-label {
+          font-size: 14px;
+        }
+
+        .radio-warning {
+          margin-left: 8px;
+          font-size: 12px;
+          color: #ef4444;
+          white-space: nowrap;
+        }
+
         @media (max-width: 768px) {
           .product-management {
             padding: 20px;
@@ -831,6 +880,68 @@ export default function ProductManagement() {
 
           .form-row {
             grid-template-columns: 1fr;
+          }
+
+          .radio-toggle-container {
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .radio-option {
+            width: 100%;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+          }
+
+          .radio-option:has(input:checked) {
+            background: #eff6ff;
+            border-color: #667eea;
+          }
+
+          .radio-warning {
+            display: block;
+            margin-left: 24px;
+            margin-top: 4px;
+            font-size: 11px;
+          }
+
+          .modal {
+            padding: 20px;
+            max-width: 95%;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .product-management {
+            padding: 15px;
+          }
+
+          .page-title {
+            font-size: 24px;
+          }
+
+          .add-product-btn {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .radio-option {
+            padding: 12px;
+          }
+
+          .radio-label {
+            font-size: 13px;
+          }
+
+          .form-label {
+            font-size: 13px;
+          }
+
+          .form-input, .form-select, .form-textarea {
+            font-size: 14px;
+            padding: 10px 12px;
           }
         }
       `}</style>
@@ -982,6 +1093,7 @@ export default function ProductManagement() {
                 setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', unitsPerBox: '10', description: '', barcode: '' });
                 setBoxInput({ boxes: '', units: '' });
                 setInputMethod('quantity');
+                setProductNameError('');
               }}>
                 ✕
               </button>
@@ -1046,10 +1158,73 @@ export default function ProductManagement() {
                 </div>
               </div>
               
-              {/* Profit Fields */}
-              <div className="form-row">
+              {/* Profit Method Toggle */}
+              <div className="form-group">
+                <label className="form-label">{t('profitCalculation')}</label>
+                <div className="radio-toggle-container">
+                  <label className="radio-option"
+                    style={{
+                      cursor: profitMethod === 'box' && formData.profitPerBox ? 'not-allowed' : 'pointer',
+                      opacity: profitMethod === 'box' && formData.profitPerBox ? 0.5 : 1
+                    }}
+                    title={profitMethod === 'box' && formData.profitPerBox ? 'Clear profit per box to switch to profit per unit' : ''}>
+                    <input
+                      type="radio"
+                      value="unit"
+                      checked={profitMethod === 'unit'}
+                      onChange={(e) => {
+                        // Only allow switching if profit per box is empty
+                        if (profitMethod === 'box' && formData.profitPerBox) {
+                          return;
+                        }
+                        setProfitMethod(e.target.value);
+                        setFormData({...formData, profitPerBox: ''});
+                      }}
+                      disabled={profitMethod === 'box' && formData.profitPerBox}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <span className="radio-label">{t('profitPerUnit')}</span>
+                    {profitMethod === 'box' && formData.profitPerBox && (
+                      <span className="radio-warning">
+                        (Clear box profit first)
+                      </span>
+                    )}
+                  </label>
+                  <label className="radio-option"
+                    style={{
+                      cursor: profitMethod === 'unit' && formData.profitPerUnit ? 'not-allowed' : 'pointer',
+                      opacity: profitMethod === 'unit' && formData.profitPerUnit ? 0.5 : 1
+                    }}
+                    title={profitMethod === 'unit' && formData.profitPerUnit ? 'Clear profit per unit to switch to profit per box' : ''}>
+                    <input
+                      type="radio"
+                      value="box"
+                      checked={profitMethod === 'box'}
+                      onChange={(e) => {
+                        // Only allow switching if profit per unit is empty
+                        if (profitMethod === 'unit' && formData.profitPerUnit) {
+                          return;
+                        }
+                        setProfitMethod(e.target.value);
+                        setFormData({...formData, profitPerUnit: ''});
+                      }}
+                      disabled={profitMethod === 'unit' && formData.profitPerUnit}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <span className="radio-label">{t('profitPerBox')}</span>
+                    {profitMethod === 'unit' && formData.profitPerUnit && (
+                      <span className="radio-warning">
+                        (Clear unit profit first)
+                      </span>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Profit Input Based on Method */}
+              {profitMethod === 'unit' ? (
                 <div className="form-group">
-                  <label className="form-label">{t('profitPerUnit')}</label>
+                  <label className="form-label">{t('profitPerUnit')} (PKR)</label>
                   <input
                     type="number"
                     name="profitPerUnit"
@@ -1060,9 +1235,22 @@ export default function ProductManagement() {
                     step="0.01"
                     placeholder={t('profitEarnedPerUnit')}
                   />
+                  {formData.profitPerUnit && formData.unitsPerBox && (
+                    <div style={{
+                      padding: '10px',
+                      background: '#f3f4f6',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      color: '#374151',
+                      marginTop: '8px'
+                    }}>
+                      📦 {t('thisEquals')} <strong>PKR {(parseFloat(formData.profitPerUnit || 0) * parseInt(formData.unitsPerBox || 10)).toFixed(2)}</strong> {t('profitPerBox')}
+                    </div>
+                  )}
                 </div>
+              ) : (
                 <div className="form-group">
-                  <label className="form-label">{t('profitPerBox')}</label>
+                  <label className="form-label">{t('profitPerBox')} (PKR)</label>
                   <input
                     type="number"
                     name="profitPerBox"
@@ -1073,32 +1261,78 @@ export default function ProductManagement() {
                     step="0.01"
                     placeholder={t('profitEarnedPerBox')}
                   />
+                  {formData.profitPerBox && formData.unitsPerBox && (
+                    <div style={{
+                      padding: '10px',
+                      background: '#f3f4f6',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      color: '#374151',
+                      marginTop: '8px'
+                    }}>
+                      📦 {t('thisEquals')} <strong>PKR {(parseFloat(formData.profitPerBox || 0) / parseInt(formData.unitsPerBox || 10)).toFixed(2)}</strong> {t('profitPerUnit')}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Input Method Toggle */}
               <div className="form-group">
                 <label className="form-label">{t('addStockBy')}</label>
-                <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <div className="radio-toggle-container">
+                  <label className="radio-option"
+                    style={{
+                      cursor: inputMethod === 'box' && (boxInput.boxes || boxInput.units) ? 'not-allowed' : 'pointer',
+                      opacity: inputMethod === 'box' && (boxInput.boxes || boxInput.units) ? 0.5 : 1
+                    }}
+                    title={inputMethod === 'box' && (boxInput.boxes || boxInput.units) ? 'Clear box inputs to switch to individual quantity' : ''}>
                     <input
                       type="radio"
                       value="quantity"
                       checked={inputMethod === 'quantity'}
-                      onChange={(e) => setInputMethod(e.target.value)}
+                      onChange={(e) => {
+                        // Only allow switching if box inputs are empty
+                        if (inputMethod === 'box' && (boxInput.boxes || boxInput.units)) {
+                          return;
+                        }
+                        setInputMethod(e.target.value);
+                      }}
+                      disabled={inputMethod === 'box' && (boxInput.boxes || boxInput.units)}
                       style={{ marginRight: '8px' }}
                     />
-                    <span style={{ fontSize: '14px' }}>{t('individualQuantity')}</span>
+                    <span className="radio-label">{t('individualQuantity')}</span>
+                    {inputMethod === 'box' && (boxInput.boxes || boxInput.units) && (
+                      <span className="radio-warning">
+                        (Clear box data first)
+                      </span>
+                    )}
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <label className="radio-option"
+                    style={{
+                      cursor: inputMethod === 'quantity' && formData.quantity ? 'not-allowed' : 'pointer',
+                      opacity: inputMethod === 'quantity' && formData.quantity ? 0.5 : 1
+                    }}
+                    title={inputMethod === 'quantity' && formData.quantity ? 'Clear quantity input to switch to boxes & units' : ''}>
                     <input
                       type="radio"
                       value="box"
                       checked={inputMethod === 'box'}
-                      onChange={(e) => setInputMethod(e.target.value)}
+                      onChange={(e) => {
+                        // Only allow switching if quantity input is empty
+                        if (inputMethod === 'quantity' && formData.quantity) {
+                          return;
+                        }
+                        setInputMethod(e.target.value);
+                      }}
+                      disabled={inputMethod === 'quantity' && formData.quantity}
                       style={{ marginRight: '8px' }}
                     />
-                    <span style={{ fontSize: '14px' }}>{t('boxesUnits')}</span>
+                    <span className="radio-label">{t('boxesUnits')}</span>
+                    {inputMethod === 'quantity' && formData.quantity && (
+                      <span className="radio-warning">
+                        (Clear quantity data first)
+                      </span>
+                    )}
                   </label>
                 </div>
               </div>
@@ -1221,7 +1455,10 @@ export default function ProductManagement() {
                 <button type="button" className="cancel-btn" onClick={() => {
                   setShowAddModal(false);
                   setEditingProduct(null);
-                  setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', description: '', barcode: '' });
+                  setFormData({ name: '', categoryId: '', price: '', quantity: '', minStock: '', unitsPerBox: '10', description: '', barcode: '' });
+                  setBoxInput({ boxes: '', units: '' });
+                  setInputMethod('quantity');
+                  setProductNameError('');
                 }}>
                   {t('cancel')}
                 </button>
