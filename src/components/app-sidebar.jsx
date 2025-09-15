@@ -150,40 +150,30 @@ const menuItems  = [
   {
     title: "Dashboard",
     id: "dashboard",
-    url: "#",
+    url: "/dashboard",
     icon: Home,
-    items: [
-      { title: "Overview", url: "/dashboard" },
-
-    ],
+    items: [],
   },
   {
     title: "Products",
     id: "products",
-    url: "#",
+    url: "/dashboard/allProducts",
     icon: Package,
-    items: [
-      { title: "All Products", url: "/dashboard/allProducts" },
-    ],
+    items: [],
   },
   {
     title: "Sales",
     id: "sales",
-    url: "#",
+    url: "/dashboard/sales",
     icon: ShoppingCart,
-    items: [
-      { title: "Sales", url: "/dashboard/sales" },
-    
-    ],
+    items: [],
   },
   {
     title: "Loans",
     id: "loans",
-    url: "#",
+    url: "/dashboard/loans",
     icon: Coins,
-    items: [
-      { title: "History", url: "/dashboard/loans" },
-    ],
+    items: [],
   },
   {
     title: "Ograi",
@@ -198,11 +188,9 @@ const menuItems  = [
   {
     title: "Returns",
     id: "returns",
-    url: "#",
+    url: "/dashboard/return",
     icon: RotateCcw,
-    items: [
-      { title: "Product Returns", url: "/dashboard/return" },
-    ],
+    items: [],
   },
   {
     title: "Reports",
@@ -217,38 +205,30 @@ const menuItemsUr = [
   {
     title: "ڈیش بورڈ",
     id: "dashboard",
-    url: "#",
+    url: "/dashboard",
     icon: Home,
-    items: [
-      { title: "جائزہ", url: "/dashboard" },
-    ],
+    items: [],
   },
   {
     title: "مصنوعات",
     id: "products",
-    url: "#",
+    url: "/dashboard/allProducts",
     icon: Package,
-    items: [
-      { title: "تمام مصنوعات", url: "/dashboard/allProducts" },
-    ],
+    items: [],
   },
   {
     title: "فروخت",
     id: "sales",
-    url: "#",
+    url: "/dashboard/sales",
     icon: ShoppingCart,
-    items: [
-      { title: "فروخت", url: "/dashboard/sales" },
-    ],
+    items: [],
   },
   {
     title: "قرضے",
     id: "loans",
-    url: "#",
+    url: "/dashboard/loans",
     icon: Coins,
-    items: [
-      { title: "تاریخچہ", url: "/dashboard/loans" },
-    ],
+    items: [],
   },
   {
     title: "اوگرائی",
@@ -263,11 +243,9 @@ const menuItemsUr = [
   {
     title: "واپسی",
     id: "returns",
-    url: "#",
+    url: "/dashboard/return",
     icon: RotateCcw,
-    items: [
-      { title: "مصنوعات کی واپسی", url: "/dashboard/return" },
-    ],
+    items: [],
   },
   {
     title: "رپورٹس",
