@@ -149,6 +149,7 @@ export default function SalesPOS() {
       return;
     }
     setShowCheckout(true);
+    setShowMobileCart(false); // Close mobile cart when opening checkout
   };
 
   const processSale = async () => {
